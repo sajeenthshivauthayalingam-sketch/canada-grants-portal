@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Grants & Scholarships</h2>
+
+<form method="get" class="filter-form">
+  <div class="filter-row">
+    <label>Region:</label>
+    <select name="region_id">
+      <option value="">All</option>
+      {% for region in regions %}
+        <option value="{{ region.id }}"
+          {% if filters.get('region_id', type=int) == region.id %}selected{% endif %}>
+          {{ region.name_en }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label>Province:</label>
+    <input type="text" name="province" value="{{ filters.get('province', '') }}" placeholder="ON, BC, QC..." />
+
+    <label>NGO only:</label>
+    <input type="checkbox" name="ngo_only" value="true"
+      {% if filters.get('ngo_only') == 'true' %}checked{% endif %} />
+  </div>
+
+  <div class="filter-row">
+    <label>Min amount:</label>
+    <input type="number" name="min_amount" step="100" value="{{ filters.get('min_amount', '') }}" />
+
+    <label>Max amount:</label>
+    <input type="number" name="max_amount" step="100" value="{{ filters.get('max_amount', '') }}" />
+
+    <label>Category:</label>
+    <input type="text" name="category" value="{{ filters.get('category', '') }}" />
+  </div>
+
+  <div class="filter-row">
+    <label>Language:</label>
+    <select name="language">
+      <option value="">Any</option>
+      <option value="EN" {% if filters.get('language') == 'EN' %}selected{% endif %}>EN</option>
+      <option value="FR" {% if filters.get('language') == 'FR' %}selected{% endif %}>FR</option>
+      <option value="Bilingual" {% if filters.get('language') == 'Bilingual' %}selected{% endif %}>Bilingual</option>
+    </select>
+
+    <label>Team scope:</label>
+    <select name="team_scope">
+      <option value="">Any</option>
+      <option value="National" {% if filters.get('team_scope') == 'National' %}selected{% endif %}>National</option>
+      <option value="Regional" {% if filters.get('team_scope') == 'Regional' %}selected{% endif %}>Regional</option>
+    </select>
+
+    <label>Type:</label>
+    <select name="individual_type">
+      <option value="">Any</option>
+      <option value="individual" {% if filters.get('individual_type') == 'individual' %}selected{% endif %}>
+        Individual
+      </option>
+      <option value="organization" {% if filters.get('individual_type') == 'organization' %}selected{% endif %}>
+        Organization
+      </option>
+      <option value="both" {% if filters.get('individual_type') == 'both' %}selected{% endif %}>
+        Both
+      </option>
+    </select>
+  </div>
+
+  <div class="filter-row">
+    <label>Deadline before:</label>
+    <input type="date" name="deadline_before" value="{{ filters.get('deadline_before', '') }}" />
+
+    <button type="submit">Apply Filters</button>
+    <a href="{{ url_for('grants.index') }}">Clear</a>
+  </div>
+</form>
+
+<table class="grant-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Organization</th>
+      <th>Region Scope</th>
+      <th>Team Scope</th>
+      <th>Language</th>
+      <th>Funding</th>
+      <th>Deadline</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for grant in grants %}
+      {% set days_left = grant.days_until_deadline() %}
+      {% set row_class = "" %}
+      {% if days_left is not none %}
+        {% if days_left < 0 %}
+          {% set row_class = "deadline-past" %}
+        {% elif days_left < 7 %}
+          {% set row_class = "deadline-red" %}
+        {% elif days_left < 14 %}
+          {% set row_class = "deadline-yellow" %}
+        {% elif days_left < 30 %}
+          {% set row_class = "deadline-blue" %}
+        {% endif %}
+      {% endif %}
+      <tr class="{{ row_class }}">
+        <td>
+          <a href="{{ url_for('grants.grant_detail', grant_id=grant.id) }}">
+            {{ grant.name_en }}
+          </a>
+        </td>
+        <td>{{ grant.organization.name if grant.organization else '' }}</td>
+        <td>{{ grant.region_scope }}</td>
+        <td>{{ grant.team_scope }}</td>
+        <td>{{ grant.language }}</td>
+        <td>
+          {% if grant.funding_min or grant.funding_max %}
+            {{ grant.funding_min or "?" }} - {{ grant.funding_max or "?" }} {{ grant.currency }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td>
+          {% if grant.deadline_date %}
+            {{ grant.deadline_date.strftime("%Y-%m-%d") }} ({{ days_left }} days)
+          {% else %}
+            Ongoing
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="7">No grants found for the selected filters.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

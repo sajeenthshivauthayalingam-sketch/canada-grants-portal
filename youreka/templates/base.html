@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="{{ g.get('lang', 'en') or 'en' }}">
+<head>
+  <meta charset="utf-8" />
+  <title>Youreka Grant Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <header class="header">
+    <h1>Youreka Grant Portal</h1>
+    <nav>
+      <a href="{{ url_for('grants.index', lang='en') }}">EN</a> |
+      <a href="{{ url_for('grants.index', lang='fr') }}">FR</a>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

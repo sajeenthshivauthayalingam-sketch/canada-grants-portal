@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ grant.name_en }}</h2>
+
+<p><strong>Organization:</strong> {{ grant.organization.name if grant.organization else "N/A" }}</p>
+<p><strong>Source URL:</strong>
+  {% if grant.source_url %}
+    <a href="{{ grant.source_url }}" target="_blank">{{ grant.source_url }}</a>
+  {% else %}
+    N/A
+  {% endif %}
+</p>
+
+<h3>Description</h3>
+<p>{{ grant.description_en or "No description available." }}</p>
+
+<h3>Eligibility</h3>
+<p>{{ grant.eligibility_en or "Not specified." }}</p>
+
+<h3>Funding</h3>
+<p>
+  {% if grant.funding_min or grant.funding_max %}
+    {{ grant.funding_min or "?" }} - {{ grant.funding_max or "?" }} {{ grant.currency }}
+  {% else %}
+    Not specified.
+  {% endif %}
+</p>
+
+<h3>Deadline</h3>
+<p>
+  {% if grant.deadline_date %}
+    {{ grant.deadline_date.strftime("%Y-%m-%d") }}
+  {% else %}
+    Ongoing / Not specified.
+  {% endif %}
+</p>
+
+<h3>Region & Scope</h3>
+<ul>
+  <li><strong>Province:</strong> {{ grant.province or "N/A" }}</li>
+  <li><strong>Region scope:</strong> {{ grant.region_scope or "N/A" }}</li>
+  <li><strong>Team scope:</strong> {{ grant.team_scope or "N/A" }}</li>
+  <li><strong>Language:</strong> {{ grant.language }}</li>
+  <li><strong>Type:</strong> {{ grant.individual_type or "N/A" }}</li>
+</ul>
+
+<hr />
+
+<h3>Region-specific Status Tracking</h3>
+
+<form method="get">
+  <label for="region_id">Select Region:</label>
+  <select name="region_id" id="region_id" onchange="this.form.submit()">
+    <option value="">-- choose region --</option>
+    {% for region in regions %}
+      <option value="{{ region.id }}"
+        {% if selected_region and region.id == selected_region.id %}selected{% endif %}>
+        {{ region.name_en }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+
+{% if selected_region %}
+  <h4>Status for {{ selected_region.name_en }}</h4>
+  <form method="post">
+    <input type="hidden" name="region_id" value="{{ selected_region.id }}" />
+    <label>Status:</label>
+    <select name="status">
+      {% set current_status = status_record.status if status_record else "Not Started" %}
+      {% for opt in ["Not Started", "In Progress", "Submitted", "Rejected", "Awarded"] %}
+        <option value="{{ opt }}" {% if opt == current_status %}selected{% endif %}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Notes:</label>
+    <textarea name="notes" rows="4" cols="50">{{ status_record.notes if status_record else "" }}</textarea>
+
+    <button type="submit">Save Status</button>
+  </form>
+{% else %}
+  <p>Select a region above to view or update status.</p>
+{% endif %}
+
+<p><a href="{{ url_for('grants.index') }}">Back to list</a></p>
+{% endblock %}
