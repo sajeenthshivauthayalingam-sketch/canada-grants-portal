@@ -6,6 +6,7 @@ from .grants import bp as grants_bp
 from .email_utils import send_deadline_reminders
 from .scraping.tasks import run_scrape
 import config as app_config
+from youreka.scraping.otf import scrape_otf
 
 def create_app(config_name="DevConfig"):
     app = Flask(__name__, instance_relative_config=True)
@@ -75,3 +76,8 @@ def register_cli(app: Flask):
         """Run scraping task to import new grants."""
         with app.app_context():
             run_scrape()
+
+    @app.cli.command("scrape-otf")
+    def scrape_otf_cmd():
+        scrape_otf()
+

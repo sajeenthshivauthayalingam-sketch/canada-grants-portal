@@ -20,32 +20,62 @@ def fetch_html(url: str) -> str:
     return resp.text
 
 
-def parse_funding_programs_page(html: str):
+# def parse_funding_programs_page(html: str):
+#     soup = BeautifulSoup(html, "html.parser")
+#     main = soup.find("main") or soup
+
+#     program_links = []
+
+#     for a in main.select("a"):
+#         href = a.get("href", "")
+#         text = a.get_text(strip=True)
+#         if not href or not text:
+#             continue
+
+#         full_url = urljoin(BASE_URL, href)
+
+#         # Skip obvious non-program pages
+#         if any(
+#             skip in href
+#             for skip in ["gcos", "userguide", "register", "service-standards", "programs.html"]
+#         ):
+#             continue
+
+#         if "/employment-social-development/services/funding/" in href:
+#             program_links.append({"name": text, "url": full_url})
+
+#     uniq = {p["url"]: p for p in program_links}
+#     return list(uniq.values())
+
+def parse_funding_list(html):
     soup = BeautifulSoup(html, "html.parser")
-    main = soup.find("main") or soup
+    links = []
 
-    program_links = []
+    selectors = [
+        "a.gc-crd-title",           # main Canada.ca card links
+        "div.col-md-8 h4 a",        # fallback for card headers
+        "main a[href*='funding']",  # generic fallback
+    ]
 
-    for a in main.select("a"):
-        href = a.get("href", "")
-        text = a.get_text(strip=True)
-        if not href or not text:
-            continue
+    for sel in selectors:
+        for a in soup.select(sel):
+            href = a.get("href", "")
+            text = a.get_text(strip=True)
 
-        full_url = urljoin(BASE_URL, href)
+            if not href or not text:
+                continue
 
-        # Skip obvious non-program pages
-        if any(
-            skip in href
-            for skip in ["gcos", "userguide", "register", "service-standards", "programs.html"]
-        ):
-            continue
+            # make URLs absolute
+            if href.startswith("/"):
+                href = urljoin(BASE_URL, href)
 
-        if "/employment-social-development/services/funding/" in href:
-            program_links.append({"name": text, "url": full_url})
+            # must link to a program page (no navigation links)
+            if any(keyword in href.lower() for keyword in ["fund", "grant", "program"]):
+                links.append({"name": text, "url": href})
 
-    uniq = {p["url"]: p for p in program_links}
-    return list(uniq.values())
+    # dedupe by url
+    unique = {item["url"]: item for item in links}
+    return list(unique.values())
 
 
 def parse_program_page(html: str, url: str) -> dict:
@@ -67,7 +97,7 @@ def parse_program_page(html: str, url: str) -> dict:
     }
 
 
-def run_scrape():
+# def run_scrape():
     """
     Scrape ESDC funding listing page and insert/update basic grants.
     This is a starting point you can refine with better selectors.
@@ -75,6 +105,64 @@ def run_scrape():
     print("Running scraping task for Canada funding programs...")
     html = fetch_html(FUNDING_LIST_URL)
     programs = parse_funding_programs_page(html)
+    print(f"Found {len(programs)} candidate program links")
+
+    gov_org = Organization.query.filter_by(name="Government of Canada - ESDC").first()
+    if not gov_org:
+        gov_org = Organization(
+            name="Government of Canada - ESDC",
+            type="Government",
+            country="Canada",
+        )
+        db.session.add(gov_org)
+        db.session.commit()
+
+    created = 0
+    for p in programs:
+        url = p["url"]
+        existing = Grant.query.filter_by(external_id=url).first()
+        if existing:
+            continue
+
+        try:
+            program_html = fetch_html(url)
+            data = parse_program_page(program_html, url)
+        except Exception as e:
+            print(f"Error scraping {url}: {e}")
+            continue
+
+        grant = Grant(
+            name_en=data["name_en"],
+            description_en=data["description_en"],
+            organization=gov_org,
+            category=None,
+            region_scope="National",
+            country="Canada",
+            province=None,
+            funding_min=None,
+            funding_max=None,
+            currency="CAD",
+            deadline_date=None,
+            ongoing_flag=True,
+            language="EN",
+            team_scope="National",
+            is_ngo_only=False,
+            source_url=url,
+            external_id=url,
+        )
+        db.session.add(grant)
+        created += 1
+
+    db.session.commit()
+    print(f"Scraping complete. Created {created} new grants.")
+
+def run_scrape():
+    print("Running scraping task for Canada funding programs...")
+    html = fetch_html(FUNDING_LIST_URL)
+
+    # FIXED HERE
+    programs = parse_funding_list(html)
+
     print(f"Found {len(programs)} candidate program links")
 
     gov_org = Organization.query.filter_by(name="Government of Canada - ESDC").first()
