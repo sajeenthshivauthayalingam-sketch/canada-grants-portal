@@ -1,31 +1,73 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="{{ g.get('lang', 'en') or 'en' }}">
-<head>
-  <meta charset="utf-8" />
-  <title>Youreka Grant Portal</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-  <header class="header">
-    <h1>Youreka Grant Portal</h1>
-    <nav>
-      <a href="{{ url_for('grants.index', lang='en') }}">EN</a> |
-      <a href="{{ url_for('grants.index', lang='fr') }}">FR</a>
-    </nav>
-  </header>
+  <head>
+    <meta charset="utf-8" />
+    <title>Youreka Grant Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <header class="yk-header">
+      <div class="yk-header-left">
+        <a href="{{ url_for('grants.index') }}" class="yk-logo-link">
+          <img
+            src="{{ url_for('static', filename='img/logo.webp') }}"
+            alt="Youreka Canada Logo"
+            class="yk-logo"
+          />
+        </a>
+        <div class="yk-header-text">
+          <div class="yk-app-name">Youreka Grant Portal</div>
+          <div class="yk-app-subtitle">
+            Internal grant & scholarship tracker
+          </div>
+        </div>
+      </div>
+      <div class="yk-header-right">
+        <div class="yk-language-switch">
+          <span class="yk-lang-label">Language:</span>
+          <a
+            href="{{ url_for('grants.index', lang='en') }}"
+            class="yk-pill {% if request.args.get('lang','en') == 'en' %}yk-pill-active{% endif %}"
+          >
+            EN
+          </a>
+          <a
+            href="{{ url_for('grants.index', lang='fr') }}"
+            class="yk-pill {% if request.args.get('lang') == 'fr' %}yk-pill-active{% endif %}"
+          >
+            FR
+          </a>
+        </div>
+      </div>
+    </header>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
+    <div class="yk-page">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
       <div class="flash-messages">
         {% for category, message in messages %}
-          <div class="flash flash-{{ category }}">{{ message }}</div>
+        <div class="flash flash-{{ category }}">{{ message }}</div>
         {% endfor %}
       </div>
-    {% endif %}
-  {% endwith %}
+      {% endif %} {% endwith %}
 
-  <main class="container">
-    {% block content %}{% endblock %}
-  </main>
-</body>
+      <main class="yk-main">{% block content %}{% endblock %}</main>
+    </div>
+
+    <footer class="yk-footer">
+      <div class="yk-footer-left">
+        <span
+          >© {{ current_date.year if current_date else 2025 }} Youreka
+          Canada</span
+        >
+      </div>
+      <div class="yk-footer-right">
+        <span class="yk-footer-tagline">Educate. Innovate. Publish.</span>
+      </div>
+    </footer>
+  </body>
 </html>

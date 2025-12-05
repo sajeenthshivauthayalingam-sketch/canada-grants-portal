@@ -1,136 +1,284 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Grants & Scholarships</h2>
 
-<form method="get" class="filter-form">
-  <div class="filter-row">
-    <label>Region:</label>
-    <select name="region_id">
-      <option value="">All</option>
-      {% for region in regions %}
-        <option value="{{ region.id }}"
-          {% if filters.get('region_id', type=int) == region.id %}selected{% endif %}>
-          {{ region.name_en }}
-        </option>
-      {% endfor %}
-    </select>
-
-    <label>Province:</label>
-    <input type="text" name="province" value="{{ filters.get('province', '') }}" placeholder="ON, BC, QC..." />
-
-    <label>NGO only:</label>
-    <input type="checkbox" name="ngo_only" value="true"
-      {% if filters.get('ngo_only') == 'true' %}checked{% endif %} />
+<section class="yk-section-header">
+  <div>
+    <h1 class="yk-section-title">Grants & Scholarships</h1>
+    <p class="yk-section-subtitle">
+      Search, filter, and track funding opportunities across Youreka’s national and regional teams.
+    </p>
   </div>
-
-  <div class="filter-row">
-    <label>Min amount:</label>
-    <input type="number" name="min_amount" step="100" value="{{ filters.get('min_amount', '') }}" />
-
-    <label>Max amount:</label>
-    <input type="number" name="max_amount" step="100" value="{{ filters.get('max_amount', '') }}" />
-
-    <label>Category:</label>
-    <input type="text" name="category" value="{{ filters.get('category', '') }}" />
-  </div>
-
-  <div class="filter-row">
-    <label>Language:</label>
-    <select name="language">
-      <option value="">Any</option>
-      <option value="EN" {% if filters.get('language') == 'EN' %}selected{% endif %}>EN</option>
-      <option value="FR" {% if filters.get('language') == 'FR' %}selected{% endif %}>FR</option>
-      <option value="Bilingual" {% if filters.get('language') == 'Bilingual' %}selected{% endif %}>Bilingual</option>
-    </select>
-
-    <label>Team scope:</label>
-    <select name="team_scope">
-      <option value="">Any</option>
-      <option value="National" {% if filters.get('team_scope') == 'National' %}selected{% endif %}>National</option>
-      <option value="Regional" {% if filters.get('team_scope') == 'Regional' %}selected{% endif %}>Regional</option>
-    </select>
-
-    <label>Type:</label>
-    <select name="individual_type">
-      <option value="">Any</option>
-      <option value="individual" {% if filters.get('individual_type') == 'individual' %}selected{% endif %}>
-        Individual
-      </option>
-      <option value="organization" {% if filters.get('individual_type') == 'organization' %}selected{% endif %}>
-        Organization
-      </option>
-      <option value="both" {% if filters.get('individual_type') == 'both' %}selected{% endif %}>
-        Both
-      </option>
-    </select>
-  </div>
-
-  <div class="filter-row">
-    <label>Deadline before:</label>
-    <input type="date" name="deadline_before" value="{{ filters.get('deadline_before', '') }}" />
-
-    <button type="submit">Apply Filters</button>
-    <a href="{{ url_for('grants.index') }}">Clear</a>
-  </div>
-</form>
-
-<table class="grant-table">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Organization</th>
-      <th>Region Scope</th>
-      <th>Team Scope</th>
-      <th>Language</th>
-      <th>Funding</th>
-      <th>Deadline</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for grant in grants %}
-      {% set days_left = grant.days_until_deadline() %}
-      {% set row_class = "" %}
-      {% if days_left is not none %}
-        {% if days_left < 0 %}
-          {% set row_class = "deadline-past" %}
-        {% elif days_left < 7 %}
-          {% set row_class = "deadline-red" %}
-        {% elif days_left < 14 %}
-          {% set row_class = "deadline-yellow" %}
-        {% elif days_left < 30 %}
-          {% set row_class = "deadline-blue" %}
-        {% endif %}
-      {% endif %}
-      <tr class="{{ row_class }}">
-        <td>
-          <a href="{{ url_for('grants.grant_detail', grant_id=grant.id) }}">
-            {{ grant.name_en }}
-          </a>
-        </td>
-        <td>{{ grant.organization.name if grant.organization else '' }}</td>
-        <td>{{ grant.region_scope }}</td>
-        <td>{{ grant.team_scope }}</td>
-        <td>{{ grant.language }}</td>
-        <td>
-          {% if grant.funding_min or grant.funding_max %}
-            {{ grant.funding_min or "?" }} - {{ grant.funding_max or "?" }} {{ grant.currency }}
-          {% else %}
-            N/A
-          {% endif %}
-        </td>
-        <td>
-          {% if grant.deadline_date %}
-            {{ grant.deadline_date.strftime("%Y-%m-%d") }} ({{ days_left }} days)
-          {% else %}
-            Ongoing
-          {% endif %}
-        </td>
-      </tr>
+  <div class="yk-section-meta">
+    {% if grants %}
+      <span class="yk-badge">{{ grants|length }} results</span>
     {% else %}
-      <tr>
-        <td colspan="7">No grants found for the selected filters.</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+      <span class="yk-badge yk-badge-muted">No results</span>
+    {% endif %}
+  </div>
+</section>
+
+<div class="yk-layout-two-col">
+  <!-- 🔹 Left: Filters -->
+  <aside class="yk-filter-panel">
+    <div class="yk-panel-header">
+      <h2>Filters</h2>
+        <button
+          type="button"
+          class="yk-link-button yk-link-button-reset"
+          <a
+            href="{{ url_for('grants.index') }}"
+            class="yk-link-button yk-link-button-reset">
+            Clear all
+          </a>
+          Clear all
+        </button>
+    </div>
+
+    <form method="get" class="yk-filter-form">
+      <div class="yk-filter-group">
+        <label class="yk-filter-label">Region</label>
+        <select name="region_id" class="yk-input">
+          <option value="">All regions</option>
+          {% for region in regions %}
+            <option value="{{ region.id }}"
+              {% if (filters.get('region_id')|int) == region.id %}selected{% endif %}>
+              {{ region.name_en }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="yk-filter-group">
+        <label class="yk-filter-label">Province</label>
+        <input
+          type="text"
+          name="province"
+          class="yk-input"
+          value="{{ filters.get('province', '') }}"
+          placeholder="ON, BC, QC..."
+        />
+      </div>
+
+      <div class="yk-filter-group yk-filter-inline">
+        <label class="yk-filter-label-inline">
+          <input
+            type="checkbox"
+            name="ngo_only"
+            value="true"
+            {% if filters.get('ngo_only') == 'true' %}checked{% endif %}
+          />
+          NGO-only grants
+        </label>
+      </div>
+
+      <div class="yk-filter-group">
+        <label class="yk-filter-label">Funding range ({{ '$' }} CAD)</label>
+        <div class="yk-filter-row-split">
+          <input
+            type="number"
+            name="min_amount"
+            class="yk-input"
+            step="100"
+            min="0"
+            value="{{ filters.get('min_amount', '') }}"
+            placeholder="Min"
+          />
+          <input
+            type="number"
+            name="max_amount"
+            class="yk-input"
+            step="100"
+            min="0"
+            value="{{ filters.get('max_amount', '') }}"
+            placeholder="Max"
+          />
+        </div>
+      </div>
+
+      <div class="yk-filter-group">
+        <label class="yk-filter-label">Category</label>
+        <input
+          type="text"
+          name="category"
+          class="yk-input"
+          value="{{ filters.get('category', '') }}"
+          placeholder="Education, Youth, STEM..."
+        />
+      </div>
+
+      <div class="yk-filter-group">
+        <label class="yk-filter-label">Language</label>
+        <select name="language" class="yk-input">
+          <option value="">Any</option>
+          <option value="EN" {% if filters.get('language') == 'EN' %}selected{% endif %}>English</option>
+          <option value="FR" {% if filters.get('language') == 'FR' %}selected{% endif %}>French</option>
+          <option value="Bilingual" {% if filters.get('language') == 'Bilingual' %}selected{% endif %}>Bilingual</option>
+        </select>
+      </div>
+
+      <div class="yk-filter-group">
+        <label class="yk-filter-label">Team scope</label>
+        <select name="team_scope" class="yk-input">
+          <option value="">Any</option>
+          <option value="National" {% if filters.get('team_scope') == 'National' %}selected{% endif %}>National</option>
+          <option value="Regional" {% if filters.get('team_scope') == 'Regional' %}selected{% endif %}>Regional</option>
+        </select>
+      </div>
+
+      <div class="yk-filter-group">
+        <label class="yk-filter-label">Grant type</label>
+        <select name="individual_type" class="yk-input">
+          <option value="">Any</option>
+          <option value="individual" {% if filters.get('individual_type') == 'individual' %}selected{% endif %}>
+            Individual
+          </option>
+          <option value="organization" {% if filters.get('individual_type') == 'organization' %}selected{% endif %}>
+            Organization
+          </option>
+          <option value="both" {% if filters.get('individual_type') == 'both' %}selected{% endif %}>
+            Both
+          </option>
+        </select>
+      </div>
+
+      <div class="yk-filter-group">
+        <label class="yk-filter-label">Deadline before</label>
+        <input
+          type="date"
+          name="deadline_before"
+          class="yk-input"
+          value="{{ filters.get('deadline_before', '') }}"
+        />
+      </div>
+
+      <button type="submit" class="yk-button-primary yk-button-full">
+        Apply filters
+      </button>
+    </form>
+  </aside>
+
+  <!-- 🔹 Right: Grant cards -->
+  <section class="yk-card-grid">
+    {% if not grants %}
+      <div class="yk-empty-state">
+        <h2>No grants found</h2>
+        <p>Try removing some filters or expanding your search criteria.</p>
+          <button
+            type="button"
+            class="yk-button-secondary"
+            <a
+              href="{{ url_for('grants.index') }}"
+              class="yk-button-secondary">
+              Reset filters
+            </a>
+            Reset filters
+          </button>
+      </div>
+    {% else %}
+      {% for grant in grants %}
+        {% set days_left = grant.days_until_deadline() %}
+        {% set deadline_class = "" %}
+        {% if days_left is not none %}
+          {% if days_left < 0 %}
+            {% set deadline_class = "yk-deadline-past" %}
+          {% elif days_left < 7 %}
+            {% set deadline_class = "yk-deadline-red" %}
+          {% elif days_left < 14 %}
+            {% set deadline_class = "yk-deadline-yellow" %}
+          {% elif days_left < 30 %}
+            {% set deadline_class = "yk-deadline-blue" %}
+          {% endif %}
+        {% endif %}
+
+        <article class="yk-card {{ deadline_class }}">
+          <div class="yk-card-header">
+            <h3 class="yk-card-title">
+              <a href="{{ url_for('grants.grant_detail', grant_id=grant.id) }}">
+                {{ grant.name_en }}
+              </a>
+            </h3>
+            {% if grant.organization %}
+              <p class="yk-card-org">{{ grant.organization.name }}</p>
+            {% endif %}
+          </div>
+
+          <div class="yk-card-body">
+            <div class="yk-card-tags">
+              {% if grant.region_scope %}
+                <span class="yk-tag">{{ grant.region_scope }}</span>
+              {% endif %}
+              {% if grant.team_scope %}
+                <span class="yk-tag yk-tag-outline">{{ grant.team_scope }}</span>
+              {% endif %}
+              {% if grant.language %}
+                <span class="yk-tag yk-tag-muted">{{ grant.language }}</span>
+              {% endif %}
+              {% if grant.individual_type %}
+                <span class="yk-tag yk-tag-type">{{ grant.individual_type|capitalize }}</span>
+              {% endif %}
+            </div>
+
+            <div class="yk-card-meta-row">
+              <div class="yk-meta-block">
+                <div class="yk-meta-label">Funding</div>
+                <div class="yk-meta-value">
+                  {% if grant.funding_min or grant.funding_max %}
+                    {{ grant.funding_min or "?" }} – {{ grant.funding_max or "?" }} {{ grant.currency }}
+                  {% else %}
+                    Not specified
+                  {% endif %}
+                </div>
+              </div>
+              <div class="yk-meta-block">
+                <div class="yk-meta-label">Deadline</div>
+                <div class="yk-meta-value">
+                  {% if grant.deadline_date %}
+                    {{ grant.deadline_date.strftime("%Y-%m-%d") }}
+                    {% if days_left is not none %}
+                      <span class="yk-meta-chip">
+                        {% if days_left < 0 %}
+                          Past deadline
+                        {% else %}
+                          {{ days_left }} days left
+                        {% endif %}
+                      </span>
+                    {% endif %}
+                  {% else %}
+                    Ongoing / TBD
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            {% if grant.province %}
+              <div class="yk-card-footer-row">
+                <span class="yk-meta-label">Province:</span>
+                <span class="yk-meta-value">{{ grant.province }}</span>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="yk-card-footer">
+            <a
+              href="{{ url_for('grants.grant_detail', grant_id=grant.id) }}"
+              class="yk-button-ghost"
+            >
+              View details
+            </a>
+            {% if grant.source_url %}
+              <a
+                href="{{ grant.source_url }}"
+                target="_blank"
+                class="yk-link-external"
+              >
+                Official site →
+              </a>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    {% endif %}
+  </section>
+</div>
+
 {% endblock %}

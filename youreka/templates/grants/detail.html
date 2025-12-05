@@ -1,86 +1,152 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>{{ grant.name_en }}</h2>
 
-<p><strong>Organization:</strong> {{ grant.organization.name if grant.organization else "N/A" }}</p>
-<p><strong>Source URL:</strong>
-  {% if grant.source_url %}
-    <a href="{{ grant.source_url }}" target="_blank">{{ grant.source_url }}</a>
-  {% else %}
-    N/A
-  {% endif %}
-</p>
+<section class="yk-section-header yk-section-header-detail">
+  <div>
+    <a href="{{ url_for('grants.index') }}" class="yk-breadcrumb-link">← Back to all grants</a>
+    <h1 class="yk-section-title">{{ grant.name_en }}</h1>
+    {% if grant.organization %}
+      <p class="yk-section-subtitle">
+        {{ grant.organization.name }}
+      </p>
+    {% endif %}
+  </div>
+  <div class="yk-section-meta">
+    {% if grant.source_url %}
+      <a href="{{ grant.source_url }}" target="_blank" class="yk-button-secondary">
+        View official page
+      </a>
+    {% endif %}
+  </div>
+</section>
 
-<h3>Description</h3>
-<p>{{ grant.description_en or "No description available." }}</p>
+<div class="yk-layout-two-col-detail">
+  <!-- Left: Main grant info -->
+  <section class="yk-panel">
+    <h2 class="yk-panel-title">Overview</h2>
 
-<h3>Eligibility</h3>
-<p>{{ grant.eligibility_en or "Not specified." }}</p>
+    <div class="yk-detail-grid">
+      <div class="yk-detail-item">
+        <div class="yk-detail-label">Funding</div>
+        <div class="yk-detail-value">
+          {% if grant.funding_min or grant.funding_max %}
+            {{ grant.funding_min or "?" }} – {{ grant.funding_max or "?" }} {{ grant.currency }}
+          {% else %}
+            Not specified
+          {% endif %}
+        </div>
+      </div>
 
-<h3>Funding</h3>
-<p>
-  {% if grant.funding_min or grant.funding_max %}
-    {{ grant.funding_min or "?" }} - {{ grant.funding_max or "?" }} {{ grant.currency }}
-  {% else %}
-    Not specified.
-  {% endif %}
-</p>
+      <div class="yk-detail-item">
+        <div class="yk-detail-label">Deadline</div>
+        <div class="yk-detail-value">
+          {% if grant.deadline_date %}
+            {{ grant.deadline_date.strftime("%Y-%m-%d") }}
+          {% else %}
+            Ongoing / Not specified
+          {% endif %}
+        </div>
+      </div>
 
-<h3>Deadline</h3>
-<p>
-  {% if grant.deadline_date %}
-    {{ grant.deadline_date.strftime("%Y-%m-%d") }}
-  {% else %}
-    Ongoing / Not specified.
-  {% endif %}
-</p>
+      <div class="yk-detail-item">
+        <div class="yk-detail-label">Region scope</div>
+        <div class="yk-detail-value">{{ grant.region_scope or "N/A" }}</div>
+      </div>
 
-<h3>Region & Scope</h3>
-<ul>
-  <li><strong>Province:</strong> {{ grant.province or "N/A" }}</li>
-  <li><strong>Region scope:</strong> {{ grant.region_scope or "N/A" }}</li>
-  <li><strong>Team scope:</strong> {{ grant.team_scope or "N/A" }}</li>
-  <li><strong>Language:</strong> {{ grant.language }}</li>
-  <li><strong>Type:</strong> {{ grant.individual_type or "N/A" }}</li>
-</ul>
+      <div class="yk-detail-item">
+        <div class="yk-detail-label">Team scope</div>
+        <div class="yk-detail-value">{{ grant.team_scope or "N/A" }}</div>
+      </div>
 
-<hr />
+      <div class="yk-detail-item">
+        <div class="yk-detail-label">Province</div>
+        <div class="yk-detail-value">{{ grant.province or "N/A" }}</div>
+      </div>
 
-<h3>Region-specific Status Tracking</h3>
+      <div class="yk-detail-item">
+        <div class="yk-detail-label">Language</div>
+        <div class="yk-detail-value">{{ grant.language or "N/A" }}</div>
+      </div>
 
-<form method="get">
-  <label for="region_id">Select Region:</label>
-  <select name="region_id" id="region_id" onchange="this.form.submit()">
-    <option value="">-- choose region --</option>
-    {% for region in regions %}
-      <option value="{{ region.id }}"
-        {% if selected_region and region.id == selected_region.id %}selected{% endif %}>
-        {{ region.name_en }}
-      </option>
-    {% endfor %}
-  </select>
-</form>
+      <div class="yk-detail-item">
+        <div class="yk-detail-label">Type</div>
+        <div class="yk-detail-value">{{ grant.individual_type or "N/A" }}</div>
+      </div>
+    </div>
 
-{% if selected_region %}
-  <h4>Status for {{ selected_region.name_en }}</h4>
-  <form method="post">
-    <input type="hidden" name="region_id" value="{{ selected_region.id }}" />
-    <label>Status:</label>
-    <select name="status">
-      {% set current_status = status_record.status if status_record else "Not Started" %}
-      {% for opt in ["Not Started", "In Progress", "Submitted", "Rejected", "Awarded"] %}
-        <option value="{{ opt }}" {% if opt == current_status %}selected{% endif %}>{{ opt }}</option>
-      {% endfor %}
-    </select>
+    <hr class="yk-divider"/>
 
-    <label>Notes:</label>
-    <textarea name="notes" rows="4" cols="50">{{ status_record.notes if status_record else "" }}</textarea>
+    <h3 class="yk-section-subheading">Description</h3>
+    <p class="yk-body-text">
+      {{ grant.description_en or "No description available." }}
+    </p>
 
-    <button type="submit">Save Status</button>
-  </form>
-{% else %}
-  <p>Select a region above to view or update status.</p>
-{% endif %}
+    <h3 class="yk-section-subheading">Eligibility</h3>
+    <p class="yk-body-text">
+      {{ grant.eligibility_en or "Eligibility criteria not specified." }}
+    </p>
+  </section>
 
-<p><a href="{{ url_for('grants.index') }}">Back to list</a></p>
+  <!-- Right: Region-specific status -->
+  <aside class="yk-panel yk-panel-status">
+    <h2 class="yk-panel-title">Region status tracking</h2>
+
+    <form method="get" class="yk-status-region-form">
+      <label for="region_id" class="yk-filter-label">Region</label>
+      <select name="region_id" id="region_id" class="yk-input" onchange="this.form.submit()">
+        <option value="">-- Choose region --</option>
+        {% for region in regions %}
+          <option value="{{ region.id }}"
+            {% if selected_region and region.id == selected_region.id %}selected{% endif %}>
+            {{ region.name_en }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+
+    {% if selected_region %}
+      <div class="yk-status-summary">
+        <div class="yk-status-region-name">{{ selected_region.name_en }}</div>
+        {% if status_record %}
+          <div class="yk-status-chip">{{ status_record.status }}</div>
+        {% else %}
+          <div class="yk-status-chip yk-status-chip-muted">Not started</div>
+        {% endif %}
+      </div>
+
+      <form method="post" class="yk-status-form">
+        <input type="hidden" name="region_id" value="{{ selected_region.id }}" />
+
+        <div class="yk-filter-group">
+          <label class="yk-filter-label">Status</label>
+          <select name="status" class="yk-input">
+            {% set current_status = status_record.status if status_record else "Not Started" %}
+            {% for opt in ["Not Started", "In Progress", "Submitted", "Rejected", "Awarded"] %}
+              <option value="{{ opt }}" {% if opt == current_status %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="yk-filter-group">
+          <label class="yk-filter-label">Notes</label>
+          <textarea
+            name="notes"
+            rows="5"
+            class="yk-input yk-textarea"
+            placeholder="Add context for this region (who is applying, timeline, risks, etc.)"
+          >{{ status_record.notes if status_record else "" }}</textarea>
+        </div>
+
+        <button type="submit" class="yk-button-primary yk-button-full">
+          Save status for {{ selected_region.name_en }}
+        </button>
+      </form>
+    {% else %}
+      <p class="yk-body-text yk-muted">
+        Select a region to view or update its status for this grant.
+      </p>
+    {% endif %}
+  </aside>
+</div>
+
 {% endblock %}
