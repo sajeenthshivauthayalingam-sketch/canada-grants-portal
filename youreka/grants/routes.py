@@ -4,43 +4,90 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_babel import gettext as _
 from ..extensions import db
 from ..models import Grant, GrantStatus, Region
-
+from sqlalchemy import func
 
 def _apply_filters(query):
     """
     Apply multi-filter search logic based on query params.
-    Supports:
-      region_id, province, ngo_only, min_amount, max_amount,
-      category, language, team_scope, individual_type, deadline_before
+    - Empty / 'Any' values are ignored
+    - Province supports 'ON' or 'Ontario' etc. (case-insensitive, partial)
+    - 'Grant type = both' is treated as 'any'
     """
-    region_id = request.args.get("region_id", type=int)
-    province = request.args.get("province", type=str)
-    ngo_only = request.args.get("ngo_only", type=str)  # "true" or ""
-    min_amount = request.args.get("min_amount", type=float)
-    max_amount = request.args.get("max_amount", type=float)
-    category = request.args.get("category", type=str)
-    language = request.args.get("language", type=str)
-    team_scope = request.args.get("team_scope", type=str)
-    individual_type = request.args.get("individual_type", type=str)
-    deadline_before = request.args.get("deadline_before", type=str)
+    args = request.args
+
+    # ---- Normalize inputs ----
+    region_id = args.get("region_id", default=None, type=int)
+
+    province_raw = (args.get("province") or "").strip()
+    province = province_raw or None
+
+    ngo_only = args.get("ngo_only")  # "true" or None
+    min_amount = args.get("min_amount", type=float)
+    max_amount = args.get("max_amount", type=float)
+
+    category = (args.get("category") or "").strip() or None
+
+    language = (args.get("language") or "").strip() or None
+    if language == "":
+        language = None
+
+    team_scope = (args.get("team_scope") or "").strip() or None
+
+    individual_type = (args.get("individual_type") or "").strip() or None
+    # Treat "both" as "any" so we don't accidentally filter out everything
+    if individual_type == "both":
+        individual_type = None
+
+    deadline_before_raw = (args.get("deadline_before") or "").strip() or None
+
+    # ---- Apply filters only when values are meaningful ----
 
     if region_id:
-        # join to GrantStatus to ensure at least one status row for that region
+        # Only show grants that have a status row for that region
         query = query.join(GrantStatus, GrantStatus.grant_id == Grant.id).filter(
             GrantStatus.region_id == region_id
         )
 
     if province:
-        query = query.filter(Grant.province == province)
+        # Map common province abbreviations to full names
+        prov_map = {
+            "ON": "Ontario",
+            "BC": "British Columbia",
+            "AB": "Alberta",
+            "QC": "Quebec",
+            "MB": "Manitoba",
+            "SK": "Saskatchewan",
+            "NS": "Nova Scotia",
+            "NB": "New Brunswick",
+            "PE": "Prince Edward Island",
+            "NL": "Newfoundland and Labrador",
+        }
+        abbrev = province.upper()
+        full = prov_map.get(abbrev)
+
+        if full:
+            # Exact match on full name, case-insensitive
+            query = query.filter(func.lower(Grant.province) == full.lower())
+        else:
+            # Fallback: partial match (typing "Ont" will match "Ontario")
+            like_pattern = f"%{province.lower()}%"
+            query = query.filter(func.lower(Grant.province).like(like_pattern))
 
     if ngo_only == "true":
         query = query.filter(Grant.is_ngo_only.is_(True))
 
     if min_amount is not None:
-        query = query.filter(Grant.funding_max >= min_amount)
+        # Only apply to grants where funding_max is set
+        query = query.filter(
+            Grant.funding_max.isnot(None),
+            Grant.funding_max >= min_amount,
+        )
 
     if max_amount is not None:
-        query = query.filter(Grant.funding_min <= max_amount)
+        query = query.filter(
+            Grant.funding_min.isnot(None),
+            Grant.funding_min <= max_amount,
+        )
 
     if category:
         query = query.filter(Grant.category == category)
@@ -54,19 +101,19 @@ def _apply_filters(query):
     if individual_type:
         query = query.filter(Grant.individual_type == individual_type)
 
-    if deadline_before:
+    if deadline_before_raw:
         try:
-            year, month, day = map(int, deadline_before.split("-"))
+            year, month, day = map(int, deadline_before_raw.split("-"))
             cutoff = date(year, month, day)
             query = query.filter(
                 Grant.deadline_date.isnot(None),
                 Grant.deadline_date <= cutoff,
             )
         except ValueError:
+            # Ignore bad date input
             pass
 
     return query
-
 
 @bp.route("/")
 def index():

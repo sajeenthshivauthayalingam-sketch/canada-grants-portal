@@ -40,10 +40,10 @@
         <select name="region_id" class="yk-input">
           <option value="">All regions</option>
           {% for region in regions %}
-            <option value="{{ region.id }}"
-              {% if (filters.get('region_id')|int) == region.id %}selected{% endif %}>
-              {{ region.name_en }}
-            </option>
+          <option value="{{ region.id }}"
+            {% if (filters.get('region_id')|int) == region.id %}selected{% endif %}>
+            {{ region.name_en }}
+          </option>
           {% endfor %}
         </select>
       </div>
