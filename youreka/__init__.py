@@ -1,5 +1,4 @@
-from flask import Flask, request, session
-from flask_babel import lazy_gettext as _
+from flask import Flask, request, session, g
 from .extensions import db, babel
 from .models import Region
 from .grants import bp as grants_bp
@@ -7,52 +6,90 @@ from .email_utils import send_deadline_reminders
 from .scraping.tasks import run_scrape
 import config as app_config
 from youreka.scraping.otf import scrape_otf
+from flask_babel import gettext as _, gettext, ngettext
+
 
 def create_app(config_name="DevConfig"):
+    import os
+    # ---------------------------------------------------------
+    # DO NOT OVERRIDE root_path !!! 
+    # Flask will automatically use the "youreka/" directory
+    # ---------------------------------------------------------
     app = Flask(__name__, instance_relative_config=True)
 
-    # Config
+    # ---------------------------------------------------------
+    # Load config
+    # ---------------------------------------------------------
     app.config.from_object(getattr(app_config, config_name))
     app.config.from_pyfile("config.py", silent=True)
 
-    # Locale selector function for Babel
+    app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "translations"
+    )
+
+
+    # ---------------------------------------------------------
+    # Locale selector
+    # ---------------------------------------------------------
     def select_locale():
-        # 1. URL has ?lang=en or ?lang=fr → store in session
-        url_lang = request.args.get("lang")
-        if url_lang in app.config.get("LANGUAGES", []):
-            session["lang"] = url_lang
-            return url_lang
+        # 1. URL override
+        lang = request.args.get("lang")
+        if lang in app.config["LANGUAGES"]:
+            session["lang"] = lang
+            session.permanent = True
+            return lang
 
-        # 2. If session already has lang, use it
-        if "lang" in session:
-            return session["lang"]
+        # 2. If visiting "/" with NO lang= param → reset to English
+        if "lang" not in request.args:
+            session["lang"] = "en"
+            return "en"
 
-        # 3. Default
-        return app.config.get("BABEL_DEFAULT_LOCALE", "en")
+        # 3. Session fallback
+        lang = session.get("lang")
+        if lang in app.config["LANGUAGES"]:
+            return lang
+
+        # 4. Default
+        return app.config["BABEL_DEFAULT_LOCALE"]
 
 
-    # Extensions
+    # ---------------------------------------------------------
+    # Initialize DB + Babel
+    # ---------------------------------------------------------
     db.init_app(app)
     babel.init_app(app, locale_selector=select_locale)
 
+    # DO NOT add jinja2.ext.i18n — Flask-Babel already handles it
+
+    @app.before_request
+    def before_request():
+        g.lang = select_locale()
+
+    @app.context_processor
+    def inject_lang():
+        return {"current_lang": session.get("lang", "en")}
+
+    # ---------------------------------------------------------
     # Blueprints
+    # ---------------------------------------------------------
     app.register_blueprint(grants_bp, url_prefix="/")
 
-    # CLI commands
-    register_cli(app)
-
-    # Ensure DB exists + seed regions
+    # ---------------------------------------------------------
+    # DB setup
+    # ---------------------------------------------------------
     with app.app_context():
         db.create_all()
         seed_regions_if_empty()
 
+    register_cli(app)
     return app
 
 
 def seed_regions_if_empty():
     if Region.query.count() > 0:
         return
-
     regions = [
         {"name_en": "National", "name_fr": "National", "province": None, "city": None},
         {"name_en": "Vancouver", "name_fr": "Vancouver", "province": "BC", "city": "Vancouver"},
@@ -64,28 +101,21 @@ def seed_regions_if_empty():
         {"name_en": "Windsor", "name_fr": "Windsor", "province": "ON", "city": "Windsor"},
         {"name_en": "French Expansion", "name_fr": "Expansion francophone", "province": None, "city": None},
     ]
-
-    from .extensions import db as _db
-
-    region_objs = [Region(**r) for r in regions]
-    _db.session.add_all(region_objs)
-    _db.session.commit()
+    db.session.add_all(Region(**r) for r in regions)
+    db.session.commit()
 
 
-def register_cli(app: Flask):
+def register_cli(app):
     @app.cli.command("send-reminders")
     def send_reminders_cmd():
-        """Send upcoming deadline email reminders (stub)."""
         with app.app_context():
             send_deadline_reminders()
 
     @app.cli.command("scrape-grants")
     def scrape_grants_cmd():
-        """Run scraping task to import new grants."""
         with app.app_context():
             run_scrape()
 
     @app.cli.command("scrape-otf")
     def scrape_otf_cmd():
         scrape_otf()
-

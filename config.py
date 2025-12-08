@@ -16,6 +16,7 @@ class Config:
     LANGUAGES = ["en", "fr"]
     BABEL_DEFAULT_LOCALE = "en"
     BABEL_DEFAULT_TIMEZONE = "UTC"
+    BABEL_TRANSLATION_DIRECTORIES = "./translations"
 
     # Email reminder settings (stub – plug real SMTP later)
     REMINDER_DAYS = 7  # look ahead this many days for reminders

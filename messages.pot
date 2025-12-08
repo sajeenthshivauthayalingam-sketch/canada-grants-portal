@@ -1,0 +1,344 @@
+# Translations template for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-12-08 00:09-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: youreka/grants/routes.py:165
+msgid "Please select a region before updating status."
+msgstr ""
+
+#: youreka/grants/routes.py:186
+msgid "Status updated successfully."
+msgstr ""
+
+#: youreka/templates/base.html:5 youreka/templates/base.html:24
+msgid "Youreka Grant Portal"
+msgstr ""
+
+#: youreka/templates/base.html:13
+msgid "Hello world!"
+msgstr ""
+
+#: youreka/templates/base.html:19
+msgid "Youreka Canada Logo"
+msgstr ""
+
+#: youreka/templates/base.html:26
+msgid "Internal grant & scholarship tracker"
+msgstr ""
+
+#: youreka/templates/base.html:33
+msgid "Language:"
+msgstr ""
+
+#: youreka/templates/base.html:39
+msgid "EN"
+msgstr ""
+
+#: youreka/templates/base.html:46
+msgid "FR"
+msgstr ""
+
+#: youreka/templates/base.html:70
+msgid "Youreka Canada"
+msgstr ""
+
+#: youreka/templates/base.html:74
+msgid "Educate. Innovate. Publish."
+msgstr ""
+
+#: youreka/templates/grants/detail.html:7
+msgid "← Back to all grants"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:19
+msgid "View official page"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:28
+msgid "Overview"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:32
+#: youreka/templates/grants/list.html:209
+msgid "Funding"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:35
+#: youreka/templates/grants/list.html:212
+msgid "?"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:37
+#: youreka/templates/grants/list.html:214
+msgid "Not specified"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:43
+#: youreka/templates/grants/list.html:219
+msgid "Deadline"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:48
+msgid "Ongoing / Not specified"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:54
+msgid "Region scope"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:55
+#: youreka/templates/grants/detail.html:60
+#: youreka/templates/grants/detail.html:65
+#: youreka/templates/grants/detail.html:70
+#: youreka/templates/grants/detail.html:75
+msgid "N/A"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:59
+#: youreka/templates/grants/list.html:113
+msgid "Team scope"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:64
+#: youreka/templates/grants/list.html:45
+msgid "Province"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:69
+#: youreka/templates/grants/list.html:103
+msgid "Language"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:74
+msgid "Type"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:81
+msgid "Description"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:83
+msgid "No description available."
+msgstr ""
+
+#: youreka/templates/grants/detail.html:86
+msgid "Eligibility"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:88
+msgid "Eligibility criteria not specified."
+msgstr ""
+
+#: youreka/templates/grants/detail.html:94
+msgid "Region status tracking"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:97
+#: youreka/templates/grants/list.html:32
+msgid "Region"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:99
+msgid "-- Choose region --"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:115
+msgid "Not started"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:123
+msgid "Status"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:125
+#: youreka/templates/grants/detail.html:126
+msgid "Not Started"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:126
+msgid "In Progress"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:126
+msgid "Submitted"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:126
+msgid "Rejected"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:126
+msgid "Awarded"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:135
+msgid "Notes"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:140
+msgid "Add context for this region (who is applying, timeline, risks, etc.)"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:145
+msgid "Save status for"
+msgstr ""
+
+#: youreka/templates/grants/detail.html:150
+msgid "Select a region to view or update its status for this grant."
+msgstr ""
+
+#: youreka/templates/grants/list.html:6
+msgid "Grants & Scholarships"
+msgstr ""
+
+#: youreka/templates/grants/list.html:8
+msgid ""
+"Search, filter, and track funding opportunities across Youreka’s national"
+" and regional teams."
+msgstr ""
+
+#: youreka/templates/grants/list.html:13
+msgid "results"
+msgstr ""
+
+#: youreka/templates/grants/list.html:15
+msgid "No results"
+msgstr ""
+
+#: youreka/templates/grants/list.html:24
+msgid "Filters"
+msgstr ""
+
+#: youreka/templates/grants/list.html:26 youreka/templates/grants/list.html:160
+msgid "Reset filters"
+msgstr ""
+
+#: youreka/templates/grants/list.html:34
+msgid "All regions"
+msgstr ""
+
+#: youreka/templates/grants/list.html:51
+msgid "ON, BC, QC..."
+msgstr ""
+
+#: youreka/templates/grants/list.html:63
+msgid "NGO-only grants"
+msgstr ""
+
+#: youreka/templates/grants/list.html:68
+msgid "Funding range ($ CAD)"
+msgstr ""
+
+#: youreka/templates/grants/list.html:77
+msgid "Min"
+msgstr ""
+
+#: youreka/templates/grants/list.html:86
+msgid "Max"
+msgstr ""
+
+#: youreka/templates/grants/list.html:92
+msgid "Category"
+msgstr ""
+
+#: youreka/templates/grants/list.html:98
+msgid "Education, Youth, STEM..."
+msgstr ""
+
+#: youreka/templates/grants/list.html:105
+#: youreka/templates/grants/list.html:115
+#: youreka/templates/grants/list.html:124
+msgid "Any"
+msgstr ""
+
+#: youreka/templates/grants/list.html:106
+msgid "English"
+msgstr ""
+
+#: youreka/templates/grants/list.html:107
+msgid "French"
+msgstr ""
+
+#: youreka/templates/grants/list.html:108
+msgid "Bilingual"
+msgstr ""
+
+#: youreka/templates/grants/list.html:116
+msgid "National"
+msgstr ""
+
+#: youreka/templates/grants/list.html:117
+msgid "Regional"
+msgstr ""
+
+#: youreka/templates/grants/list.html:122
+msgid "Grant type"
+msgstr ""
+
+#: youreka/templates/grants/list.html:126
+msgid "Individual"
+msgstr ""
+
+#: youreka/templates/grants/list.html:129
+msgid "Organization"
+msgstr ""
+
+#: youreka/templates/grants/list.html:132
+msgid "Both"
+msgstr ""
+
+#: youreka/templates/grants/list.html:138
+msgid "Deadline before"
+msgstr ""
+
+#: youreka/templates/grants/list.html:148
+msgid "Apply filters"
+msgstr ""
+
+#: youreka/templates/grants/list.html:157
+msgid "No grants found"
+msgstr ""
+
+#: youreka/templates/grants/list.html:158
+msgid "Try removing some filters or expanding your search criteria."
+msgstr ""
+
+#: youreka/templates/grants/list.html:226
+msgid "Past deadline"
+msgstr ""
+
+#: youreka/templates/grants/list.html:228
+msgid "days left"
+msgstr ""
+
+#: youreka/templates/grants/list.html:233
+msgid "Ongoing / TBD"
+msgstr ""
+
+#: youreka/templates/grants/list.html:241
+msgid "Province:"
+msgstr ""
+
+#: youreka/templates/grants/list.html:252
+msgid "View details"
+msgstr ""
+
+#: youreka/templates/grants/list.html:260
+msgid "Official site →"
+msgstr ""
+
