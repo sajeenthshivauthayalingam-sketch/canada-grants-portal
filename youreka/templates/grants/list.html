@@ -3,16 +3,16 @@
 
 <section class="yk-section-header">
   <div>
-    <h1 class="yk-section-title">Grants & Scholarships</h1>
+    <h1 class="yk-section-title">{{ _("Grants & Scholarships") }}</h1>
     <p class="yk-section-subtitle">
-      Search, filter, and track funding opportunities across Youreka’s national and regional teams.
+      {{ _("Search, filter, and track funding opportunities across Youreka’s national and regional teams.") }}
     </p>
   </div>
   <div class="yk-section-meta">
     {% if grants %}
-      <span class="yk-badge">{{ grants|length }} results</span>
+      <span class="yk-badge">{{ grants|length }} {{ _("results") }}</span>
     {% else %}
-      <span class="yk-badge yk-badge-muted">No results</span>
+      <span class="yk-badge yk-badge-muted">{{ _("No results") }}</span>
     {% endif %}
   </div>
 </section>
@@ -21,17 +21,17 @@
   <!-- 🔹 Left: Filters -->
   <aside class="yk-filter-panel">
     <div class="yk-panel-header">
-      <h2>Filters</h2>
+      <h2>{{ _("Filters") }}</h2>
         <a href="{{ url_for('grants.index') }}" class="yk-button-secondary">
-          Reset filters
+          {{ _("Reset filters") }}
         </a>
     </div>
 
     <form method="get" class="yk-filter-form">
       <div class="yk-filter-group">
-        <label class="yk-filter-label">Region</label>
+        <label class="yk-filter-label">{{ _("Region") }}</label>
         <select name="region_id" class="yk-input">
-          <option value="">All regions</option>
+          <option value="">{{ _("All regions") }}</option>
           {% for region in regions %}
           <option value="{{ region.id }}"
             {% if (filters.get('region_id')|int) == region.id %}selected{% endif %}>
@@ -42,13 +42,13 @@
       </div>
 
       <div class="yk-filter-group">
-        <label class="yk-filter-label">Province</label>
+        <label class="yk-filter-label">{{ _("Province") }}</label>
         <input
           type="text"
           name="province"
           class="yk-input"
           value="{{ filters.get('province', '') }}"
-          placeholder="ON, BC, QC..."
+          placeholder="{{ _('ON, BC, QC...') }}"
         />
       </div>
 
@@ -60,12 +60,12 @@
             value="true"
             {% if filters.get('ngo_only') == 'true' %}checked{% endif %}
           />
-          NGO-only grants
+          {{ _("NGO-only grants") }}
         </label>
       </div>
 
       <div class="yk-filter-group">
-        <label class="yk-filter-label">Funding range ({{ '$' }} CAD)</label>
+        <label class="yk-filter-label">{{ _("Funding range ($ CAD)") }}</label>
         <div class="yk-filter-row-split">
           <input
             type="number"
@@ -74,7 +74,7 @@
             step="100"
             min="0"
             value="{{ filters.get('min_amount', '') }}"
-            placeholder="Min"
+            placeholder="{{ _('Min') }}"
           />
           <input
             type="number"
@@ -83,59 +83,59 @@
             step="100"
             min="0"
             value="{{ filters.get('max_amount', '') }}"
-            placeholder="Max"
+            placeholder="{{ _('Max') }}"
           />
         </div>
       </div>
 
       <div class="yk-filter-group">
-        <label class="yk-filter-label">Category</label>
+        <label class="yk-filter-label">{{ _("Category") }}</label>
         <input
           type="text"
           name="category"
           class="yk-input"
           value="{{ filters.get('category', '') }}"
-          placeholder="Education, Youth, STEM..."
+          placeholder="{{ _('Education, Youth, STEM...') }}"
         />
       </div>
 
       <div class="yk-filter-group">
-        <label class="yk-filter-label">Language</label>
+        <label class="yk-filter-label">{{ _("Language") }}</label>
         <select name="language" class="yk-input">
-          <option value="">Any</option>
-          <option value="EN" {% if filters.get('language') == 'EN' %}selected{% endif %}>English</option>
-          <option value="FR" {% if filters.get('language') == 'FR' %}selected{% endif %}>French</option>
-          <option value="Bilingual" {% if filters.get('language') == 'Bilingual' %}selected{% endif %}>Bilingual</option>
+          <option value="">{{ _("Any") }}</option>
+          <option value="EN" {% if filters.get('language') == 'EN' %}selected{% endif %}>{{ _("English") }}</option>
+          <option value="FR" {% if filters.get('language') == 'FR' %}selected{% endif %}>{{ _("French") }}</option>
+          <option value="Bilingual" {% if filters.get('language') == 'Bilingual' %}selected{% endif %}>{{ _("Bilingual") }}</option>
         </select>
       </div>
 
       <div class="yk-filter-group">
-        <label class="yk-filter-label">Team scope</label>
+        <label class="yk-filter-label">{{ _("Team scope") }}</label>
         <select name="team_scope" class="yk-input">
-          <option value="">Any</option>
-          <option value="National" {% if filters.get('team_scope') == 'National' %}selected{% endif %}>National</option>
-          <option value="Regional" {% if filters.get('team_scope') == 'Regional' %}selected{% endif %}>Regional</option>
+          <option value="">{{ _("Any") }}</option>
+          <option value="National" {% if filters.get('team_scope') == 'National' %}selected{% endif %}>{{ _("National") }}</option>
+          <option value="Regional" {% if filters.get('team_scope') == 'Regional' %}selected{% endif %}>{{ _("Regional") }}</option>
         </select>
       </div>
 
       <div class="yk-filter-group">
-        <label class="yk-filter-label">Grant type</label>
+        <label class="yk-filter-label">{{ _("Grant type") }}</label>
         <select name="individual_type" class="yk-input">
-          <option value="">Any</option>
+          <option value="">{{ _("Any") }}</option>
           <option value="individual" {% if filters.get('individual_type') == 'individual' %}selected{% endif %}>
-            Individual
+            {{ _("Individual") }}
           </option>
           <option value="organization" {% if filters.get('individual_type') == 'organization' %}selected{% endif %}>
-            Organization
+            {{ _("Organization") }}
           </option>
           <option value="both" {% if filters.get('individual_type') == 'both' %}selected{% endif %}>
-            Both
+            {{ _("Both") }}
           </option>
         </select>
       </div>
 
       <div class="yk-filter-group">
-        <label class="yk-filter-label">Deadline before</label>
+        <label class="yk-filter-label">{{ _("Deadline before") }}</label>
         <input
           type="date"
           name="deadline_before"
@@ -145,7 +145,7 @@
       </div>
 
       <button type="submit" class="yk-button-primary yk-button-full">
-        Apply filters
+        {{ _("Apply filters") }}
       </button>
     </form>
   </aside>
@@ -154,18 +154,11 @@
   <section class="yk-card-grid">
     {% if not grants %}
       <div class="yk-empty-state">
-        <h2>No grants found</h2>
-        <p>Try removing some filters or expanding your search criteria.</p>
-          <button
-            type="button"
-            class="yk-button-secondary"
-            <a
-              href="{{ url_for('grants.index') }}"
-              class="yk-button-secondary">
-              Reset filters
-            </a>
-            Reset filters
-          </button>
+        <h2>{{ _("No grants found") }}</h2>
+        <p>{{ _("Try removing some filters or expanding your search criteria.") }}</p>
+          <a href="{{ url_for('grants.index') }}" class="yk-button-secondary">
+            {{ _("Reset filters") }}
+          </a>
       </div>
     {% else %}
       {% for grant in grants %}
@@ -213,31 +206,31 @@
 
             <div class="yk-card-meta-row">
               <div class="yk-meta-block">
-                <div class="yk-meta-label">Funding</div>
+                <div class="yk-meta-label">{{ _("Funding") }}</div>
                 <div class="yk-meta-value">
                   {% if grant.funding_min or grant.funding_max %}
-                    {{ grant.funding_min or "?" }} – {{ grant.funding_max or "?" }} {{ grant.currency }}
+                    {{ grant.funding_min or _("?") }} – {{ grant.funding_max or _("?") }} {{ grant.currency }}
                   {% else %}
-                    Not specified
+                    {{ _("Not specified") }}
                   {% endif %}
                 </div>
               </div>
               <div class="yk-meta-block">
-                <div class="yk-meta-label">Deadline</div>
+                <div class="yk-meta-label">{{ _("Deadline") }}</div>
                 <div class="yk-meta-value">
                   {% if grant.deadline_date %}
                     {{ grant.deadline_date.strftime("%Y-%m-%d") }}
                     {% if days_left is not none %}
                       <span class="yk-meta-chip">
                         {% if days_left < 0 %}
-                          Past deadline
+                          {{ _("Past deadline") }}
                         {% else %}
-                          {{ days_left }} days left
+                          {{ days_left }} {{ _("days left") }}
                         {% endif %}
                       </span>
                     {% endif %}
                   {% else %}
-                    Ongoing / TBD
+                    {{ _("Ongoing / TBD") }}
                   {% endif %}
                 </div>
               </div>
@@ -245,7 +238,7 @@
 
             {% if grant.province %}
               <div class="yk-card-footer-row">
-                <span class="yk-meta-label">Province:</span>
+                <span class="yk-meta-label">{{ _("Province:") }}</span>
                 <span class="yk-meta-value">{{ grant.province }}</span>
               </div>
             {% endif %}
@@ -256,7 +249,7 @@
               href="{{ url_for('grants.grant_detail', grant_id=grant.id) }}"
               class="yk-button-ghost"
             >
-              View details
+              {{ _("View details") }}
             </a>
             {% if grant.source_url %}
               <a
@@ -264,7 +257,7 @@
                 target="_blank"
                 class="yk-link-external"
               >
-                Official site →
+                {{ _("Official site →") }}
               </a>
             {% endif %}
           </div>

@@ -2,7 +2,7 @@
 <html lang="{{ g.get('lang', 'en') or 'en' }}">
   <head>
     <meta charset="utf-8" />
-    <title>Youreka Grant Portal</title>
+    <title>{{ _("Youreka Grant Portal") }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
       rel="stylesheet"
@@ -15,62 +15,62 @@
         <a href="{{ url_for('grants.index') }}" class="yk-logo-link">
           <img
             src="{{ url_for('static', filename='img/logo.webp') }}"
-            alt="Youreka Canada Logo"
+            alt="{{ _('Youreka Canada Logo') }}"
             class="yk-logo"
           />
         </a>
         <div class="yk-header-text">
-          <div class="yk-app-name">Youreka Grant Portal</div>
+          <div class="yk-app-name">{{ _("Youreka Grant Portal") }}</div>
           <div class="yk-app-subtitle">
-            Internal grant & scholarship tracker
+            {{ _("Internal grant & scholarship tracker") }}
           </div>
         </div>
       </div>
+
       <div class="yk-header-right">
         <div class="yk-language-switch">
-          <span class="yk-lang-label">Language:</span>
+          <span class="yk-lang-label">{{ _("Language:") }}</span>
 
           <a
             href="{{ request.path }}?lang=en{% for k,v in request.args.items() if k != 'lang' %}&{{ k }}={{ v }}{% endfor %}"
             class="yk-pill {% if session.get('lang','en') == 'en' %}yk-pill-active{% endif %}"
           >
-            EN
+            {{ _("EN") }}
           </a>
 
           <a
             href="{{ request.path }}?lang=fr{% for k,v in request.args.items() if k != 'lang' %}&{{ k }}={{ v }}{% endfor %}"
             class="yk-pill {% if session.get('lang') == 'fr' %}yk-pill-active{% endif %}"
           >
-            FR
+            {{ _("FR") }}
           </a>
-
         </div>
 
       </div>
     </header>
 
     <div class="yk-page">
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
       <div class="flash-messages">
         {% for category, message in messages %}
         <div class="flash flash-{{ category }}">{{ message }}</div>
         {% endfor %}
       </div>
-      {% endif %} {% endwith %}
+      {% endif %}
+      {% endwith %}
 
       <main class="yk-main">{% block content %}{% endblock %}</main>
     </div>
 
     <footer class="yk-footer">
       <div class="yk-footer-left">
-        <span
-          >© {{ current_date.year if current_date else 2025 }} Youreka
-          Canada</span
-        >
+        <span>
+          © {{ current_date.year if current_date else 2025 }} {{ _("Youreka Canada") }}
+        </span>
       </div>
       <div class="yk-footer-right">
-        <span class="yk-footer-tagline">Educate. Innovate. Publish.</span>
+        <span class="yk-footer-tagline">{{ _("Educate. Innovate. Publish.") }}</span>
       </div>
     </footer>
   </body>

@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, session
 from flask_babel import lazy_gettext as _
 from .extensions import db, babel
 from .models import Region
@@ -17,11 +17,19 @@ def create_app(config_name="DevConfig"):
 
     # Locale selector function for Babel
     def select_locale():
-        # ?lang=en or ?lang=fr
-        lang = request.args.get("lang")
-        if lang in app.config.get("LANGUAGES", []):
-            return lang
+        # 1. URL has ?lang=en or ?lang=fr → store in session
+        url_lang = request.args.get("lang")
+        if url_lang in app.config.get("LANGUAGES", []):
+            session["lang"] = url_lang
+            return url_lang
+
+        # 2. If session already has lang, use it
+        if "lang" in session:
+            return session["lang"]
+
+        # 3. Default
         return app.config.get("BABEL_DEFAULT_LOCALE", "en")
+
 
     # Extensions
     db.init_app(app)
