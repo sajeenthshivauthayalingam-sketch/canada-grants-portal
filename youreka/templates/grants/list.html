@@ -22,16 +22,9 @@
   <aside class="yk-filter-panel">
     <div class="yk-panel-header">
       <h2>Filters</h2>
-        <button
-          type="button"
-          class="yk-link-button yk-link-button-reset"
-          <a
-            href="{{ url_for('grants.index') }}"
-            class="yk-link-button yk-link-button-reset">
-            Clear all
-          </a>
-          Clear all
-        </button>
+        <a href="{{ url_for('grants.index') }}" class="yk-button-secondary">
+          Reset filters
+        </a>
     </div>
 
     <form method="get" class="yk-filter-form">

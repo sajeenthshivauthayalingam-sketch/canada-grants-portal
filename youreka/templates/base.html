@@ -29,19 +29,23 @@
       <div class="yk-header-right">
         <div class="yk-language-switch">
           <span class="yk-lang-label">Language:</span>
+
           <a
-            href="{{ url_for('grants.index', lang='en') }}"
-            class="yk-pill {% if request.args.get('lang','en') == 'en' %}yk-pill-active{% endif %}"
+            href="{{ request.path }}?lang=en{% for k,v in request.args.items() if k != 'lang' %}&{{ k }}={{ v }}{% endfor %}"
+            class="yk-pill {% if session.get('lang','en') == 'en' %}yk-pill-active{% endif %}"
           >
             EN
           </a>
+
           <a
-            href="{{ url_for('grants.index', lang='fr') }}"
-            class="yk-pill {% if request.args.get('lang') == 'fr' %}yk-pill-active{% endif %}"
+            href="{{ request.path }}?lang=fr{% for k,v in request.args.items() if k != 'lang' %}&{{ k }}={{ v }}{% endfor %}"
+            class="yk-pill {% if session.get('lang') == 'fr' %}yk-pill-active{% endif %}"
           >
             FR
           </a>
+
         </div>
+
       </div>
     </header>
 
