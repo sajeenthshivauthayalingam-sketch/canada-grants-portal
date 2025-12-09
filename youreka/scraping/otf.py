@@ -160,6 +160,13 @@ def scrape_otf():
             print(f"Error scraping {url}: {e}")
             continue
 
+        # ✅ NEW: skip expired grants
+        from datetime import date
+        if data["deadline_date"] and data["deadline_date"] < date.today():
+            print(f"Skipping expired grant: {data['name']} (deadline {data['deadline_date']})")
+            continue
+
+        # Create grant
         grant = Grant(
             name_en=data["name"],
             description_en=data["description"],

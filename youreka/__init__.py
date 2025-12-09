@@ -7,7 +7,7 @@ from .scraping.tasks import run_scrape
 import config as app_config
 from youreka.scraping.otf import scrape_otf
 from flask_babel import gettext as _, gettext, ngettext
-
+from .scraping.gov import scrape_ontario
 
 def create_app(config_name="DevConfig"):
     import os
@@ -119,3 +119,7 @@ def register_cli(app):
     @app.cli.command("scrape-otf")
     def scrape_otf_cmd():
         scrape_otf()
+
+    @app.cli.command("scrape-ontario")
+    def scrape_ontario_cmd():
+        scrape_ontario()
