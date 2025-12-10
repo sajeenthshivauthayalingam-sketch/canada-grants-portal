@@ -4,30 +4,39 @@ from datetime import timedelta
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
-class Config:
+# Common settings for all environments
+class BaseConfig:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL",
-        "sqlite:///" + os.path.join(BASE_DIR, "grants.db"),
-    )
+
+    # SQLAlchemy
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Babel / i18n
+    # i18n / Babel
     LANGUAGES = ["en", "fr"]
     BABEL_DEFAULT_LOCALE = "en"
     BABEL_DEFAULT_TIMEZONE = "UTC"
     BABEL_TRANSLATION_DIRECTORIES = "./translations"
 
-    # Email reminder settings (stub – plug real SMTP later)
+    # Email reminder settings (stub)
     REMINDER_DAYS = 7  # look ahead this many days for reminders
 
-    # For session lifetime / CSRF etc if needed later
+    # Session
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
 
-class DevConfig(Config):
-    DEBUG = True
+# Local development: use SQLite file
+class DevConfig(BaseConfig):
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, "grants.db")
 
 
-class ProdConfig(Config):
-    DEBUG = False
+# Production (Render): use DATABASE_URL (Postgres)
+class ProdConfig(BaseConfig):
+    db_url = os.environ.get("DATABASE_URL")
+
+    # Handle old-style postgres:// URLs if Render gives them
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+    SQLALCHEMY_DATABASE_URI = db_url or (
+        "sqlite:///" + os.path.join(BASE_DIR, "grants.db")
+    )
