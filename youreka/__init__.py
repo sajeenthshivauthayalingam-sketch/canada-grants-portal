@@ -8,6 +8,8 @@ import config as app_config
 from youreka.scraping.otf import scrape_otf
 from flask_babel import gettext as _, gettext, ngettext
 from .scraping.gov import scrape_ontario
+from .seed_grants import seed_grants_if_empty
+
 
 def create_app(config_name="DevConfig"):
     import os
@@ -82,6 +84,7 @@ def create_app(config_name="DevConfig"):
     with app.app_context():
         db.create_all()
         seed_regions_if_empty()
+        seed_grants_if_empty()
 
     register_cli(app)
     return app

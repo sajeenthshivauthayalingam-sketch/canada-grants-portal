@@ -109,131 +109,19 @@ By default, the app will be available at:
 
 ---
 
-## 6. Using the Portal
+## 6. How people maintain it later
+Update code:
+Anyone with repo access edits locally → `git commit && git push`.
+Render auto-detects the push and redeploys.
 
-### 6.1. Grants List Page
+Update DB schema:
+If you add new columns, just deploy – `db.create_all()` will create new tables, and for new columns you can either run simple ALTER statements or later add Alembic, but for this project simple tables are usually fine.
 
-Home page (`/`) shows:
+Scrape data in the cloud:
+You already have the `scrape-grants` CLI. On Render:
 
-* All grants
-* Filters for:
-
-  * Region
-  * Province
-  * NGO-only
-  * Funding range
-  * Category
-  * Language (EN/FR/Bilingual)
-  * Team scope (National/Regional)
-  * Type (individual / organization / both)
-  * Deadline before a specific date
-
-Rows are color-coded by deadline:
-
-* **Red**: < 7 days
-* **Yellow**: < 14 days
-* **Blue**: < 30 days
-* Greyed out if past
-
-### 6.2. Grant Detail Page
-
-Click a grant name to see:
-
-* Name, organization, description, eligibility
-* Funding amount and currency
-* Deadline and scope
-* Link to the official source URL
-
-For **region-specific status tracking**:
-
-1. Select a region from the dropdown.
-2. Set status:
-   `Not Started`, `In Progress`, `Submitted`, `Rejected`, `Awarded`
-3. Add notes.
-4. Save.
-
-Status is stored per **grant + region**.
-
----
-
-## 7. Bilingual Support
-
-The app is wired with **Flask-Babel** and supports:
-
-* `?lang=en`
-* `?lang=fr`
-
-Right now the templates mostly display English fields (`name_en`, `description_en`), but the database and models already include French fields (`name_fr`, `description_fr`, `eligibility_fr`) for future expansion.
-
----
-
-## 8. Email Reminder Stub (Optional CLI)
-
-There is a CLI command that selects grants with deadlines in the next N days (default 7) and prints them as if reminders were being sent.
-
-Run:
+Go to the web service → Shell (or Jobs) and run:
 
 ```bash
-flask --app app send-reminders
-```
-
-Currently this just prints to the console. You can later hook it up to a real email service (SMTP, SendGrid, etc.).
-
----
-
-## 9. Project Structure (High-Level)
-
-```text
-app.py                    # App entrypoint (create_app + run)
-config.py                 # App configuration (Dev/Prod)
-
-youreka/
-  __init__.py             # App factory, CLI commands, region seeding
-  extensions.py           # db (SQLAlchemy) + babel instances
-  models.py               # Database models (Grant, Region, Organization, GrantStatus)
-  email_utils.py          # Deadline reminder helpers (stub)
-  scraping/
-    __init__.py
-    tasks.py              # Simple scraping task for gov funding programs
-  grants/
-    __init__.py           # Grants Blueprint
-    routes.py             # Routes for listing + viewing/updating grants
-  templates/
-    base.html             # Layout
-    grants/
-      list.html           # Grants list + filters
-      detail.html         # Grant detail + region status form
-  static/
-    css/
-      styles.css          # Basic styling
-```
-
----
-
-## 10. Common Issues
-
-### “ModuleNotFoundError: No module named ‘youreka’”
-
-Make sure you are in the project root (where `app.py` lives) and your virtualenv is active before running:
-
-```bash
-flask --app app run
-```
-
-### “OperationalError: no such table”
-
-Delete `grants.db` and rerun:
-
-```bash
-rm grants.db           # or del grants.db on Windows
-python app.py          # recreates tables and seeds regions
-```
-
----
-
-That’s it!
-Anyone with Python can now clone the repo, install deps, and run the Youreka Grant Portal locally.
-
-```
-::contentReference[oaicite:0]{index=0}
+flask --app app scrape-grants
 ```
