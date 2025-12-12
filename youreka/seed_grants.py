@@ -24,7 +24,7 @@ def seed_grants_if_empty():
         org = Organization(
             name="Imported Grants",
             type="Unknown",
-            ngo_status=False,
+            ngo_only=False,
             country="Canada",
         )
         db.session.add(org)
