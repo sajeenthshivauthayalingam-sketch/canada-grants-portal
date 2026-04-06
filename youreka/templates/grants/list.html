@@ -1,35 +1,191 @@
 {% extends "base.html" %}
 {% block content %}
 
-<section class="yk-section-header">
-  <div>
-    <h1 class="yk-section-title">{{ _("Grants & Scholarships") }}</h1>
-    <p class="yk-section-subtitle">
-      {{ _("Search, filter, and track funding opportunities across Youreka’s national and regional teams.") }}
-    </p>
-  </div>
-  <div class="yk-section-meta">
-    {% if grants %}
-      <span class="yk-badge">{{ grants|length }} {{ _("results") }}</span>
-    {% else %}
-      <span class="yk-badge yk-badge-muted">{{ _("No results") }}</span>
+{# ── Grant card ── #}
+{% macro render_grant_card(grant) %}
+  {% set days_left = grant.days_until_deadline() %}
+  {% set dl_class = "" %}
+  {% if days_left is not none %}
+    {% if days_left < 0 %}{% set dl_class = "yk-card--expired" %}
+    {% elif days_left < 7 %}{% set dl_class = "yk-card--urgent" %}
+    {% elif days_left < 14 %}{% set dl_class = "yk-card--soon" %}
+    {% elif days_left < 30 %}{% set dl_class = "yk-card--upcoming" %}
     {% endif %}
-  </div>
-</section>
+  {% endif %}
 
-<div class="yk-layout-two-col">
-  <!-- 🔹 Left: Filters -->
-  <aside class="yk-filter-panel">
-    <div class="yk-panel-header">
-      <h2>{{ _("Filters") }}</h2>
-        <a href="{{ url_for('grants.index') }}" class="yk-button-secondary">
-          {{ _("Reset filters") }}
-        </a>
+  <a href="{{ url_for('grants.grant_detail', grant_id=grant.id) }}" class="yk-card {{ dl_class }}">
+    {# Top accent stripe #}
+    <div class="yk-card__accent"></div>
+
+    <div class="yk-card__body">
+      {# Title + org #}
+      <div class="yk-card__header">
+        <h3 class="yk-card__title">{{ grant.name_en }}</h3>
+        {% if grant.organization %}
+          <span class="yk-card__org">{{ grant.organization.name }}</span>
+        {% endif %}
+      </div>
+
+      {# Chips row #}
+      <div class="yk-card__chips">
+        {% if grant.source_type == "external" %}
+          <span class="yk-chip yk-chip--accent">{{ _("Hellodarwin") }}</span>
+        {% endif %}
+        {% if grant.application_status %}
+          <span class="yk-chip {% if grant.application_status == 'open' %}yk-chip--accent{% else %}yk-chip--outline{% endif %}">{{ grant.application_status|capitalize }}</span>
+        {% endif %}
+        {% if grant.province %}
+          <span class="yk-chip">{{ grant.province }}</span>
+        {% endif %}
+      </div>
+
+      {# KPI row #}
+      <div class="yk-card__kpis">
+        <div class="yk-kpi">
+          <span class="yk-kpi__label">{{ _("Funding") }}</span>
+          <span class="yk-kpi__value">
+            {% if grant.funding_max %}
+              ${{ "{:,.0f}".format(grant.funding_max) }}
+            {% elif grant.funding_min %}
+              ${{ "{:,.0f}".format(grant.funding_min) }}+
+            {% elif grant.percentage_funding %}
+              {{ "{:.0f}".format(grant.percentage_funding) }}%
+            {% else %}
+              —
+            {% endif %}
+          </span>
+        </div>
+        <div class="yk-kpi">
+          <span class="yk-kpi__label">{{ _("Deadline") }}</span>
+          <span class="yk-kpi__value">
+            {% if grant.deadline_date %}
+              {{ grant.deadline_date.strftime("%b %d, %Y") }}
+            {% else %}
+              {{ _("Ongoing") }}
+            {% endif %}
+          </span>
+        </div>
+      </div>
     </div>
 
-    <form method="get" class="yk-filter-form">
-      <div class="yk-filter-group">
-        <label class="yk-filter-label">{{ _("Region") }}</label>
+    {# Footer #}
+    <div class="yk-card__footer">
+      {% if days_left is not none %}
+        {% if days_left < 0 %}
+          <span class="yk-badge yk-badge--muted">{{ _("Expired") }}</span>
+        {% elif days_left == 0 %}
+          <span class="yk-badge yk-badge--danger">{{ _("Today!") }}</span>
+        {% elif days_left < 7 %}
+          <span class="yk-badge yk-badge--danger">{{ days_left }}d {{ _("left") }}</span>
+        {% elif days_left < 30 %}
+          <span class="yk-badge yk-badge--warn">{{ days_left }}d {{ _("left") }}</span>
+        {% else %}
+          <span class="yk-badge yk-badge--ok">{{ days_left }}d {{ _("left") }}</span>
+        {% endif %}
+      {% else %}
+        <span class="yk-badge yk-badge--muted">{{ _("No deadline") }}</span>
+      {% endif %}
+      <span class="yk-card__arrow">→</span>
+    </div>
+  </a>
+{% endmacro %}
+
+{# ── Section with tabs ── #}
+{% macro render_section(section_id, icon, title, desc, active_grants, expired_grants) %}
+  <section class="yk-section" id="sec-{{ section_id }}">
+    <div class="yk-section__head">
+      <div class="yk-section__icon">{{ icon }}</div>
+      <div>
+        <h2 class="yk-section__title">{{ title }}</h2>
+        <p class="yk-section__desc">{{ desc }}</p>
+      </div>
+    </div>
+
+    <div class="yk-tabs" role="tablist">
+      <button class="yk-tabs__btn yk-tabs__btn--active" role="tab"
+              data-tab="{{ section_id }}-active" onclick="switchTab(this)">
+        {{ _("Active") }}
+        <span class="yk-tabs__count">{{ active_grants|length }}</span>
+      </button>
+      <button class="yk-tabs__btn" role="tab"
+              data-tab="{{ section_id }}-expired" onclick="switchTab(this)">
+        {{ _("Expired") }}
+        <span class="yk-tabs__count yk-tabs__count--dim">{{ expired_grants|length }}</span>
+      </button>
+    </div>
+
+    <div class="yk-tabs__panel yk-tabs__panel--visible" id="{{ section_id }}-active" role="tabpanel">
+      {% if not active_grants %}
+        <div class="yk-empty">
+          <p class="yk-empty__text">{{ _("No active grants in this section.") }}</p>
+        </div>
+      {% else %}
+        <div class="yk-grid">
+          {% for grant in active_grants %}
+            {{ render_grant_card(grant) }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="yk-tabs__panel" id="{{ section_id }}-expired" role="tabpanel">
+      {% if not expired_grants %}
+        <div class="yk-empty">
+          <p class="yk-empty__text">{{ _("No expired grants.") }}</p>
+        </div>
+      {% else %}
+        <div class="yk-grid">
+          {% for grant in expired_grants %}
+            {{ render_grant_card(grant) }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+{% endmacro %}
+
+
+{# ── Hero ── #}
+<div class="yk-hero">
+  <h1 class="yk-hero__title">{{ _("Grants & Scholarships") }}</h1>
+  <p class="yk-hero__sub">
+    {{ _("Discover funding opportunities curated by the Youreka team and aggregated from the Hellodarwin grants feed.") }}
+  </p>
+  <div class="yk-hero__stats">
+    {% set total = grants|length %}
+    <div class="yk-stat">
+      <span class="yk-stat__num">{{ internal_active|length + internal_expired|length }}</span>
+      <span class="yk-stat__label">{{ _("Curated") }}</span>
+    </div>
+    <div class="yk-stat__sep"></div>
+    <div class="yk-stat">
+      <span class="yk-stat__num">{{ external_active|length + external_expired|length }}</span>
+      <span class="yk-stat__label">{{ _("Open Data") }}</span>
+    </div>
+    <div class="yk-stat__sep"></div>
+    <div class="yk-stat">
+      <span class="yk-stat__num">{{ total }}</span>
+      <span class="yk-stat__label">{{ _("Total") }}</span>
+    </div>
+  </div>
+</div>
+
+
+{# ── Main layout ── #}
+<div class="yk-layout">
+  {# Sidebar filters #}
+  <aside class="yk-sidebar" id="filterSidebar">
+    <div class="yk-sidebar__head">
+      <h2 class="yk-sidebar__title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        {{ _("Filters") }}
+      </h2>
+      <a href="{{ url_for('grants.index') }}" class="yk-sidebar__reset">{{ _("Reset") }}</a>
+    </div>
+
+    <form method="get" class="yk-sidebar__form">
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Region") }}</label>
         <select name="region_id" class="yk-input">
           <option value="">{{ _("All regions") }}</option>
           {% for region in regions %}
@@ -41,66 +197,39 @@
         </select>
       </div>
 
-      <div class="yk-filter-group">
-        <label class="yk-filter-label">{{ _("Province") }}</label>
-        <input
-          type="text"
-          name="province"
-          class="yk-input"
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Province") }}</label>
+        <input type="text" name="province" class="yk-input"
           value="{{ filters.get('province', '') }}"
-          placeholder="{{ _('ON, BC, QC...') }}"
-        />
+          placeholder="{{ _('ON, BC, QC…') }}" />
       </div>
 
-      <div class="yk-filter-group yk-filter-inline">
-        <label class="yk-filter-label-inline">
-          <input
-            type="checkbox"
-            name="ngo_only"
-            value="true"
-            {% if filters.get('ngo_only') == 'true' %}checked{% endif %}
-          />
-          {{ _("NGO-only grants") }}
-        </label>
-      </div>
+      <label class="yk-check">
+        <input type="checkbox" name="ngo_only" value="true"
+          {% if filters.get('ngo_only') == 'true' %}checked{% endif %} />
+        <span>{{ _("NGO-only grants") }}</span>
+      </label>
 
-      <div class="yk-filter-group">
-        <label class="yk-filter-label">{{ _("Funding range ($ CAD)") }}</label>
-        <div class="yk-filter-row-split">
-          <input
-            type="number"
-            name="min_amount"
-            class="yk-input"
-            step="100"
-            min="0"
-            value="{{ filters.get('min_amount', '') }}"
-            placeholder="{{ _('Min') }}"
-          />
-          <input
-            type="number"
-            name="max_amount"
-            class="yk-input"
-            step="100"
-            min="0"
-            value="{{ filters.get('max_amount', '') }}"
-            placeholder="{{ _('Max') }}"
-          />
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Funding (CAD)") }}</label>
+        <div class="yk-field__row">
+          <input type="number" name="min_amount" class="yk-input" step="100" min="0"
+            value="{{ filters.get('min_amount', '') }}" placeholder="{{ _('Min') }}" />
+          <span class="yk-field__sep">–</span>
+          <input type="number" name="max_amount" class="yk-input" step="100" min="0"
+            value="{{ filters.get('max_amount', '') }}" placeholder="{{ _('Max') }}" />
         </div>
       </div>
 
-      <div class="yk-filter-group">
-        <label class="yk-filter-label">{{ _("Category") }}</label>
-        <input
-          type="text"
-          name="category"
-          class="yk-input"
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Category") }}</label>
+        <input type="text" name="category" class="yk-input"
           value="{{ filters.get('category', '') }}"
-          placeholder="{{ _('Education, Youth, STEM...') }}"
-        />
+          placeholder="{{ _('Education, Youth, STEM…') }}" />
       </div>
 
-      <div class="yk-filter-group">
-        <label class="yk-filter-label">{{ _("Language") }}</label>
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Language") }}</label>
         <select name="language" class="yk-input">
           <option value="">{{ _("Any") }}</option>
           <option value="EN" {% if filters.get('language') == 'EN' %}selected{% endif %}>{{ _("English") }}</option>
@@ -109,8 +238,8 @@
         </select>
       </div>
 
-      <div class="yk-filter-group">
-        <label class="yk-filter-label">{{ _("Team scope") }}</label>
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Team scope") }}</label>
         <select name="team_scope" class="yk-input">
           <option value="">{{ _("Any") }}</option>
           <option value="National" {% if filters.get('team_scope') == 'National' %}selected{% endif %}>{{ _("National") }}</option>
@@ -118,153 +247,59 @@
         </select>
       </div>
 
-      <div class="yk-filter-group">
-        <label class="yk-filter-label">{{ _("Grant type") }}</label>
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Grant type") }}</label>
         <select name="individual_type" class="yk-input">
           <option value="">{{ _("Any") }}</option>
-          <option value="individual" {% if filters.get('individual_type') == 'individual' %}selected{% endif %}>
-            {{ _("Individual") }}
-          </option>
-          <option value="organization" {% if filters.get('individual_type') == 'organization' %}selected{% endif %}>
-            {{ _("Organization") }}
-          </option>
-          <option value="both" {% if filters.get('individual_type') == 'both' %}selected{% endif %}>
-            {{ _("Both") }}
-          </option>
+          <option value="individual" {% if filters.get('individual_type') == 'individual' %}selected{% endif %}>{{ _("Individual") }}</option>
+          <option value="organization" {% if filters.get('individual_type') == 'organization' %}selected{% endif %}>{{ _("Organization") }}</option>
+          <option value="both" {% if filters.get('individual_type') == 'both' %}selected{% endif %}>{{ _("Both") }}</option>
         </select>
       </div>
 
-      <div class="yk-filter-group">
-        <label class="yk-filter-label">{{ _("Deadline before") }}</label>
-        <input
-          type="date"
-          name="deadline_before"
-          class="yk-input"
-          value="{{ filters.get('deadline_before', '') }}"
-        />
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Deadline before") }}</label>
+        <input type="date" name="deadline_before" class="yk-input"
+          value="{{ filters.get('deadline_before', '') }}" />
       </div>
 
-      <button type="submit" class="yk-button-primary yk-button-full">
+      <button type="submit" class="yk-btn yk-btn--primary yk-btn--full">
         {{ _("Apply filters") }}
       </button>
     </form>
   </aside>
 
-  <!-- 🔹 Right: Grant cards -->
-  <section class="yk-card-grid">
-    {% if not grants %}
-      <div class="yk-empty-state">
-        <h2>{{ _("No grants found") }}</h2>
-        <p>{{ _("Try removing some filters or expanding your search criteria.") }}</p>
-          <a href="{{ url_for('grants.index') }}" class="yk-button-secondary">
-            {{ _("Reset filters") }}
-          </a>
-      </div>
-    {% else %}
-      {% for grant in grants %}
-        {% set days_left = grant.days_until_deadline() %}
-        {% set deadline_class = "" %}
-        {% if days_left is not none %}
-          {% if days_left < 0 %}
-            {% set deadline_class = "yk-deadline-past" %}
-          {% elif days_left < 7 %}
-            {% set deadline_class = "yk-deadline-red" %}
-          {% elif days_left < 14 %}
-            {% set deadline_class = "yk-deadline-yellow" %}
-          {% elif days_left < 30 %}
-            {% set deadline_class = "yk-deadline-blue" %}
-          {% endif %}
-        {% endif %}
+  {# Content #}
+  <div class="yk-content">
+    {{ render_section(
+        "curated", "📋",
+        _("Curated Grants"),
+        _("Manually reviewed and added by the Youreka team."),
+        internal_active, internal_expired
+    ) }}
 
-        <article class="yk-card {{ deadline_class }}">
-          <div class="yk-card-header">
-            <h3 class="yk-card-title">
-              <a href="{{ url_for('grants.grant_detail', grant_id=grant.id) }}">
-                {{ grant.name_en }}
-              </a>
-            </h3>
-            {% if grant.organization %}
-              <p class="yk-card-org">{{ grant.organization.name }}</p>
-            {% endif %}
-          </div>
-
-          <div class="yk-card-body">
-            <div class="yk-card-tags">
-              {% if grant.region_scope %}
-                <span class="yk-tag">{{ grant.region_scope }}</span>
-              {% endif %}
-              {% if grant.team_scope %}
-                <span class="yk-tag yk-tag-outline">{{ grant.team_scope }}</span>
-              {% endif %}
-              {% if grant.language %}
-                <span class="yk-tag yk-tag-muted">{{ grant.language }}</span>
-              {% endif %}
-              {% if grant.individual_type %}
-                <span class="yk-tag yk-tag-type">{{ grant.individual_type|capitalize }}</span>
-              {% endif %}
-            </div>
-
-            <div class="yk-card-meta-row">
-              <div class="yk-meta-block">
-                <div class="yk-meta-label">{{ _("Funding") }}</div>
-                <div class="yk-meta-value">
-                  {% if grant.funding_min or grant.funding_max %}
-                    {{ grant.funding_min or _("?") }} – {{ grant.funding_max or _("?") }} {{ grant.currency }}
-                  {% else %}
-                    {{ _("Not specified") }}
-                  {% endif %}
-                </div>
-              </div>
-              <div class="yk-meta-block">
-                <div class="yk-meta-label">{{ _("Deadline") }}</div>
-                <div class="yk-meta-value">
-                  {% if grant.deadline_date %}
-                    {{ grant.deadline_date.strftime("%Y-%m-%d") }}
-                    {% if days_left is not none %}
-                      <span class="yk-meta-chip">
-                        {% if days_left < 0 %}
-                          {{ _("Past deadline") }}
-                        {% else %}
-                          {{ days_left }} {{ _("days left") }}
-                        {% endif %}
-                      </span>
-                    {% endif %}
-                  {% else %}
-                    {{ _("Ongoing / TBD") }}
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-
-            {% if grant.province %}
-              <div class="yk-card-footer-row">
-                <span class="yk-meta-label">{{ _("Province:") }}</span>
-                <span class="yk-meta-value">{{ grant.province }}</span>
-              </div>
-            {% endif %}
-          </div>
-
-          <div class="yk-card-footer">
-            <a
-              href="{{ url_for('grants.grant_detail', grant_id=grant.id) }}"
-              class="yk-button-ghost"
-            >
-              {{ _("View details") }}
-            </a>
-            {% if grant.source_url %}
-              <a
-                href="{{ grant.source_url }}"
-                target="_blank"
-                class="yk-link-external"
-              >
-                {{ _("Official site →") }}
-              </a>
-            {% endif %}
-          </div>
-        </article>
-      {% endfor %}
-    {% endif %}
-  </section>
+    {{ render_section(
+        "opendata", "🌐",
+        _("Hellodarwin Grants"),
+        _("Automatically aggregated from the Hellodarwin grants feed."),
+        external_active, external_expired
+    ) }}
+  </div>
 </div>
+
+{# Mobile filter toggle #}
+<button class="yk-fab" id="filterToggle" onclick="document.getElementById('filterSidebar').classList.toggle('yk-sidebar--open')" aria-label="Toggle filters">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+</button>
+
+<script>
+function switchTab(btn) {
+  const section = btn.closest('.yk-section');
+  section.querySelectorAll('.yk-tabs__btn').forEach(t => t.classList.remove('yk-tabs__btn--active'));
+  section.querySelectorAll('.yk-tabs__panel').forEach(p => p.classList.remove('yk-tabs__panel--visible'));
+  btn.classList.add('yk-tabs__btn--active');
+  document.getElementById(btn.dataset.tab).classList.add('yk-tabs__panel--visible');
+}
+</script>
 
 {% endblock %}

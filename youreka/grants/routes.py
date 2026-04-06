@@ -116,25 +116,64 @@ def _apply_filters(query):
     return query
 
 @bp.route("/")
+def landing():
+    today = date.today()
+    curated_count = Grant.query.filter(
+        (Grant.source_type == "internal") | (Grant.source_type.is_(None))
+    ).count()
+    opendata_count = Grant.query.filter(Grant.source_type == "external").count()
+    return render_template(
+        "landing.html",
+        curated_count=curated_count,
+        opendata_count=opendata_count,
+        current_date=today,
+    )
+
+
+@bp.route("/grants")
 def index():
-    # Base query
-    query = Grant.query
+    today = date.today()
 
-    # Apply filters
-    query = _apply_filters(query)
+    # Base query — internal grants (CSV seed)
+    internal_query = Grant.query.filter(
+        (Grant.source_type == "internal") | (Grant.source_type.is_(None))
+    )
+    internal_query = _apply_filters(internal_query)
+    all_internal = internal_query.order_by(
+        Grant.deadline_date.is_(None), Grant.deadline_date.asc()
+    ).all()
 
-    # Sort by deadline (nulls last)
-    grants = query.order_by(Grant.deadline_date.is_(None), Grant.deadline_date.asc()).all()
+    # External grants (open data imports)
+    external_query = Grant.query.filter(Grant.source_type == "external")
+    external_query = _apply_filters(external_query)
+    all_external = external_query.order_by(
+        Grant.deadline_date.is_(None), Grant.deadline_date.asc()
+    ).all()
+
+    # Split into active / expired
+    def split_active_expired(grants):
+        active, expired = [], []
+        for g in grants:
+            if g.deadline_date and g.deadline_date < today:
+                expired.append(g)
+            else:
+                active.append(g)
+        return active, expired
+
+    internal_active, internal_expired = split_active_expired(all_internal)
+    external_active, external_expired = split_active_expired(all_external)
 
     regions = Region.query.filter_by(is_active=True).all()
 
-    current_date = date.today()
-
     return render_template(
         "grants/list.html",
-        grants=grants,
+        internal_active=internal_active,
+        internal_expired=internal_expired,
+        external_active=external_active,
+        external_expired=external_expired,
+        grants=all_internal + all_external,
         regions=regions,
-        current_date=current_date,
+        current_date=today,
         filters=request.args,
     )
 

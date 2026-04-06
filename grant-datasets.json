@@ -1,0 +1,14 @@
+{
+  "datasets": [
+    {
+      "title": "Proactive Disclosure - Grants and Contributions",
+      "organization": "Government of Canada",
+      "resources": [
+        {
+          "url": "https://open.canada.ca/data/api/action/datastore_search?resource_id=1d15a62f-5656-49ad-8c88-f40ce689d831&limit=200&sort=agreement_start_date+desc",
+          "format": "CKAN_API"
+        }
+      ]
+    }
+  ]
+}

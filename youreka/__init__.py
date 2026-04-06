@@ -9,6 +9,7 @@ from youreka.scraping.otf import scrape_otf
 from flask_babel import gettext as _, gettext, ngettext
 from .scraping.gov import scrape_ontario
 from .seed_grants import seed_grants_if_empty
+from .import_external import fetch_and_import_external_grants
 
 
 def create_app(config_name="DevConfig"):
@@ -85,6 +86,7 @@ def create_app(config_name="DevConfig"):
         db.create_all()
         seed_regions_if_empty()
         seed_grants_if_empty()
+        fetch_and_import_external_grants()
 
     register_cli(app)
     return app
@@ -126,3 +128,13 @@ def register_cli(app):
     @app.cli.command("scrape-ontario")
     def scrape_ontario_cmd():
         scrape_ontario()
+
+    @app.cli.command("import-external")
+    def import_external_cmd():
+        """Fetch and import external grants from open data sources."""
+        from .import_external import fetch_and_import_external_grants as _fetch
+        # Force re-fetch even if grants exist
+        from .models import Grant as _G
+        _G.query.filter_by(source_type="external").delete()
+        db.session.commit()
+        _fetch()

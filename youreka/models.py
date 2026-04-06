@@ -78,6 +78,29 @@ class Grant(db.Model):
     source_url = db.Column(db.String(255))
     external_id = db.Column(db.String(255), unique=True)
 
+    # Source classification: "internal" (CSV seed) or "external" (open data API)
+    source_type = db.Column(db.String(20), default="internal")
+
+    # Hellodarwin enriched fields
+    application_status = db.Column(db.String(50))          # "open", "closed", …
+    percentage_funding = db.Column(db.Float)
+    financing_types = db.Column(db.Text)                   # comma-separated
+    services = db.Column(db.Text)                          # comma-separated
+    logo_url = db.Column(db.String(512))
+    hd_handle = db.Column(db.String(255))                  # fullHandle for detail URL
+
+    # Rich detail fields (plain text, stripped from HTML)
+    long_description = db.Column(db.Text)
+    who_can_apply = db.Column(db.Text)
+    who_cannot_apply = db.Column(db.Text)
+    eligible_expenses = db.Column(db.Text)
+    selection_criteria = db.Column(db.Text)
+    steps_how_to_apply = db.Column(db.Text)
+    documents_needed = db.Column(db.Text)
+    additional_information = db.Column(db.Text)
+    application_email = db.Column(db.String(255))
+    application_phone = db.Column(db.String(100))
+
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(

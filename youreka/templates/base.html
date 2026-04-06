@@ -4,57 +4,54 @@
     <meta charset="utf-8" />
     <title>{{ _("Youreka Grant Portal") }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/styles.css') }}"
-    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v={{ range(100000)|random }}" />
   </head>
   <body>
     <header class="yk-header">
-      <div class="yk-header-left">
-        <a href="{{ url_for('grants.index') }}" class="yk-logo-link">
-          <img
-            src="{{ url_for('static', filename='img/logo.webp') }}"
-            alt="{{ _('Youreka Canada Logo') }}"
-            class="yk-logo"
-          />
-        </a>
-        <div class="yk-header-text">
-          <div class="yk-app-name">{{ _("Youreka Grant Portal") }}</div>
-          <div class="yk-app-subtitle">
-            {{ _("Internal grant & scholarship tracker") }}
+      <div class="yk-header-inner">
+        <div class="yk-header-left">
+          <a href="{{ url_for('grants.landing') }}" class="yk-logo-link">
+            <img
+              src="{{ url_for('static', filename='img/logo.webp') }}"
+              alt="{{ _('Youreka Canada Logo') }}"
+              class="yk-logo"
+            />
+          </a>
+          <div class="yk-header-text">
+            <div class="yk-app-name">{{ _("Youreka Grants") }}</div>
           </div>
         </div>
-      </div>
 
-      <div class="yk-header-right">
-        <div class="yk-language-switch">
-          <span class="yk-lang-label">{{ _("Language:") }}</span>
-
-          <a
-            href="{{ request.path }}?lang=en{% for k,v in request.args.items() if k != 'lang' %}&{{ k }}={{ v }}{% endfor %}"
-            class="yk-pill {% if session.get('lang','en') == 'en' %}yk-pill-active{% endif %}"
-          >
-            {{ _("EN") }}
+        <nav class="yk-nav">
+          <a href="{{ url_for('grants.landing') }}" class="yk-nav-link">{{ _("Home") }}</a>
+          <a href="{{ url_for('grants.index') }}" class="yk-nav-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            {{ _("Browse") }}
           </a>
+        </nav>
 
-          <a
-            href="{{ request.path }}?lang=fr{% for k,v in request.args.items() if k != 'lang' %}&{{ k }}={{ v }}{% endfor %}"
-            class="yk-pill {% if session.get('lang') == 'fr' %}yk-pill-active{% endif %}"
-          >
-            {{ _("FR") }}
-          </a>
+        <div class="yk-header-right">
+          <div class="yk-language-switch">
+            <a href="{{ request.path }}?lang=en{% for k,v in request.args.items() if k != 'lang' %}&{{ k }}={{ v }}{% endfor %}"
+               class="yk-lang-btn {% if session.get('lang','en') == 'en' %}yk-lang-btn-active{% endif %}">EN</a>
+            <a href="{{ request.path }}?lang=fr{% for k,v in request.args.items() if k != 'lang' %}&{{ k }}={{ v }}{% endfor %}"
+               class="yk-lang-btn {% if session.get('lang') == 'fr' %}yk-lang-btn-active{% endif %}">FR</a>
+          </div>
         </div>
-
       </div>
     </header>
 
     <div class="yk-page">
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-      <div class="flash-messages">
+      <div class="yk-toast-stack">
         {% for category, message in messages %}
-        <div class="flash flash-{{ category }}">{{ message }}</div>
+        <div class="yk-toast yk-toast-{{ category }}">
+          <span class="yk-toast-msg">{{ message }}</span>
+        </div>
         {% endfor %}
       </div>
       {% endif %}
@@ -64,13 +61,14 @@
     </div>
 
     <footer class="yk-footer">
-      <div class="yk-footer-left">
-        <span>
-          © {{ current_date.year if current_date else 2025 }} {{ _("Youreka Canada") }}
-        </span>
-      </div>
-      <div class="yk-footer-right">
-        <span class="yk-footer-tagline">{{ _("Educate. Innovate. Publish.") }}</span>
+      <div class="yk-footer-inner">
+        <div class="yk-footer-left">
+          <span class="yk-footer-brand">{{ _("Youreka Canada") }}</span>
+          <span class="yk-footer-copy">© {{ current_date.year if current_date else 2025 }}</span>
+        </div>
+        <div class="yk-footer-right">
+          <span class="yk-footer-tagline">{{ _("Educate. Innovate. Publish.") }}</span>
+        </div>
       </div>
     </footer>
   </body>

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="yk-landing">
+  {# ── Hero ── #}
+  <div class="yk-landing-hero">
+    <div class="yk-landing-hero__eyebrow">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      {{ _("Updated daily from Hellodarwin") }}
+    </div>
+
+    <h1 class="yk-landing-hero__title">
+      {{ _("Find funding for") }}<br>
+      <span>{{ _("what matters") }}</span>
+    </h1>
+
+    <p class="yk-landing-hero__sub">
+      {{ _("Search grants and scholarships curated by the Youreka team, plus thousands aggregated from the Hellodarwin grants feed — all in one place.") }}
+    </p>
+
+    <div class="yk-landing-hero__actions">
+      <a href="{{ url_for('grants.index') }}" class="yk-btn yk-btn--primary yk-btn--lg">
+        {{ _("Browse grants") }}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+
+  {# ── Stats ── #}
+  <div class="yk-landing-stats">
+    <div class="yk-landing-stat">
+      <span class="yk-landing-stat__num">{{ curated_count }}</span>
+      <span class="yk-landing-stat__label">{{ _("Curated") }}</span>
+    </div>
+    <div class="yk-landing-stat">
+      <span class="yk-landing-stat__num">{{ opendata_count }}</span>
+      <span class="yk-landing-stat__label">{{ _("Hellodarwin") }}</span>
+    </div>
+    <div class="yk-landing-stat">
+      <span class="yk-landing-stat__num">{{ curated_count + opendata_count }}</span>
+      <span class="yk-landing-stat__label">{{ _("Total") }}</span>
+    </div>
+  </div>
+
+  {# ── Features ── #}
+  <div class="yk-features">
+    <div class="yk-feature">
+      <span class="yk-feature__icon">📋</span>
+      <div class="yk-feature__title">{{ _("Curated Grants") }}</div>
+      <p class="yk-feature__desc">{{ _("Hand-picked and reviewed by the Youreka team from trusted Canadian sources.") }}</p>
+    </div>
+    <div class="yk-feature">
+      <span class="yk-feature__icon">🌐</span>
+      <div class="yk-feature__title">{{ _("Hellodarwin Feed") }}</div>
+      <p class="yk-feature__desc">{{ _("Thousands of grants automatically aggregated from the Hellodarwin funding database.") }}</p>
+    </div>
+    <div class="yk-feature">
+      <span class="yk-feature__icon">🔍</span>
+      <div class="yk-feature__title">{{ _("Smart Filters") }}</div>
+      <p class="yk-feature__desc">{{ _("Filter by region, province, funding amount, deadline, and more.") }}</p>
+    </div>
+  </div>
+
+  {# ── Bottom CTA ── #}
+  <div class="yk-landing-cta">
+    <div class="yk-landing-cta__title">{{ _("Ready to find your next opportunity?") }}</div>
+    <p class="yk-landing-cta__sub">{{ _("Start browsing grants and scholarships available across Canada.") }}</p>
+    <a href="{{ url_for('grants.index') }}" class="yk-btn yk-btn--primary yk-btn--lg">
+      {{ _("Get started") }}
+    </a>
+  </div>
+</div>
+
+{% endblock %}
