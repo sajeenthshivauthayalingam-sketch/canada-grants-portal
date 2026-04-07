@@ -133,45 +133,72 @@ def landing():
 @bp.route("/grants")
 def index():
     today = date.today()
+    PER_PAGE = 12
 
-    # Base query — internal grants (CSV seed)
-    internal_query = Grant.query.filter(
+    source = request.args.get("source", "curated")  # "curated" or "opendata"
+    tab = request.args.get("tab", "active")          # "active" or "expired"
+    page = request.args.get("page", 1, type=int)
+    if page < 1:
+        page = 1
+
+    # Build base queries for counts (unfiltered by active/expired)
+    internal_base = Grant.query.filter(
         (Grant.source_type == "internal") | (Grant.source_type.is_(None))
     )
-    internal_query = _apply_filters(internal_query)
-    all_internal = internal_query.order_by(
-        Grant.deadline_date.is_(None), Grant.deadline_date.asc()
-    ).all()
+    internal_base = _apply_filters(internal_base)
 
-    # External grants (open data imports)
-    external_query = Grant.query.filter(Grant.source_type == "external")
-    external_query = _apply_filters(external_query)
-    all_external = external_query.order_by(
-        Grant.deadline_date.is_(None), Grant.deadline_date.asc()
-    ).all()
+    external_base = Grant.query.filter(Grant.source_type == "external")
+    external_base = _apply_filters(external_base)
 
-    # Split into active / expired
-    def split_active_expired(grants):
-        active, expired = [], []
-        for g in grants:
-            if g.deadline_date and g.deadline_date < today:
-                expired.append(g)
-            else:
-                active.append(g)
-        return active, expired
+    # Counts for tab badges
+    internal_active_count = internal_base.filter(
+        (Grant.deadline_date.is_(None)) | (Grant.deadline_date >= today)
+    ).count()
+    internal_expired_count = internal_base.filter(
+        Grant.deadline_date.isnot(None), Grant.deadline_date < today
+    ).count()
+    external_active_count = external_base.filter(
+        (Grant.deadline_date.is_(None)) | (Grant.deadline_date >= today)
+    ).count()
+    external_expired_count = external_base.filter(
+        Grant.deadline_date.isnot(None), Grant.deadline_date < today
+    ).count()
 
-    internal_active, internal_expired = split_active_expired(all_internal)
-    external_active, external_expired = split_active_expired(all_external)
+    # Pick the right query based on source + tab
+    if source == "opendata":
+        query = external_base
+    else:
+        query = internal_base
+
+    if tab == "expired":
+        query = query.filter(Grant.deadline_date.isnot(None), Grant.deadline_date < today)
+    else:
+        query = query.filter((Grant.deadline_date.is_(None)) | (Grant.deadline_date >= today))
+
+    query = query.order_by(Grant.deadline_date.is_(None), Grant.deadline_date.asc())
+
+    total = query.count()
+    total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
+    if page > total_pages:
+        page = total_pages
+    grants_page = query.offset((page - 1) * PER_PAGE).limit(PER_PAGE).all()
 
     regions = Region.query.filter_by(is_active=True).all()
 
     return render_template(
         "grants/list.html",
-        internal_active=internal_active,
-        internal_expired=internal_expired,
-        external_active=external_active,
-        external_expired=external_expired,
-        grants=all_internal + all_external,
+        grants_page=grants_page,
+        source=source,
+        tab=tab,
+        page=page,
+        total_pages=total_pages,
+        total=total,
+        internal_active_count=internal_active_count,
+        internal_expired_count=internal_expired_count,
+        external_active_count=external_active_count,
+        external_expired_count=external_expired_count,
+        internal_total=internal_active_count + internal_expired_count,
+        external_total=external_active_count + external_expired_count,
         regions=regions,
         current_date=today,
         filters=request.args,

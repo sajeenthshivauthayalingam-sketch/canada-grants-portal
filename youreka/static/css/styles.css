@@ -482,6 +482,73 @@ button, input, select, textarea { font-family: var(--font); }
    TABS  — pill style
    ================================================================ */
 
+/* ── Source-level tabs (Curated vs Hellodarwin) ── */
+
+.yk-source-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--bg-raised);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.yk-source-tabs__btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  flex: 1;
+  padding: .75rem 1.25rem;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  transition: all var(--dur) var(--ease);
+  border-right: 1px solid var(--border);
+  position: relative;
+  text-decoration: none;
+}
+
+.yk-source-tabs__btn:last-child { border-right: none; }
+
+.yk-source-tabs__btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-2);
+}
+
+.yk-source-tabs__btn--active {
+  background: var(--brand);
+  color: #fff;
+}
+
+.yk-source-tabs__btn--active:hover {
+  background: var(--brand-hover);
+  color: #fff;
+}
+
+.yk-source-tabs__count {
+  font-size: .7rem;
+  font-weight: 700;
+  padding: .1rem .45rem;
+  border-radius: var(--r-full);
+  background: rgba(255,255,255,.15);
+  color: inherit;
+}
+
+.yk-source-tabs__btn:not(.yk-source-tabs__btn--active) .yk-source-tabs__count {
+  background: var(--bg-hover);
+  color: var(--text-3);
+}
+
+.yk-source-panel { display: none; }
+.yk-source-panel--visible { display: block; animation: tabIn .3s var(--ease); }
+
+/* ── Sub-tabs (Active vs Expired within a section) ── */
+
 .yk-tabs {
   display: inline-flex;
   gap: 2px;
@@ -505,6 +572,7 @@ button, input, select, textarea { font-family: var(--font); }
   align-items: center;
   gap: .35rem;
   transition: all var(--dur) var(--ease);
+  text-decoration: none;
 }
 .yk-tabs__btn:hover { color: var(--text-2); }
 
@@ -536,6 +604,78 @@ button, input, select, textarea { font-family: var(--font); }
 @keyframes tabIn {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ================================================================
+   PAGINATION
+   ================================================================ */
+
+.yk-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  padding: 1.5rem 0 .5rem;
+}
+
+.yk-pagination__btn {
+  display: inline-flex;
+  align-items: center;
+  padding: .45rem .9rem;
+  border-radius: var(--r-sm);
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--brand);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+  text-decoration: none;
+}
+
+.yk-pagination__btn:hover {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+}
+
+.yk-pagination__btn--disabled {
+  color: var(--text-3);
+  cursor: default;
+  pointer-events: none;
+  opacity: .5;
+}
+
+.yk-pagination__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: var(--r-sm);
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text-2);
+  background: transparent;
+  text-decoration: none;
+  transition: all var(--dur) var(--ease);
+}
+
+.yk-pagination__num:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+
+.yk-pagination__num--active {
+  background: var(--brand);
+  color: #fff;
+  pointer-events: none;
+}
+
+.yk-pagination__dots {
+  color: var(--text-3);
+  font-size: .8rem;
+  padding: 0 .15rem;
 }
 
 

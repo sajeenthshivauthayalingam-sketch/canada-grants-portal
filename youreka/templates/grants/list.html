@@ -145,6 +145,23 @@
 {% endmacro %}
 
 
+{# ── Helper: build URL preserving current filters ── #}
+{% macro tab_url(src=source, t=tab, p=1) %}
+  {{- url_for('grants.index',
+      source=src, tab=t, page=p,
+      region_id=filters.get('region_id',''),
+      province=filters.get('province',''),
+      ngo_only=filters.get('ngo_only',''),
+      min_amount=filters.get('min_amount',''),
+      max_amount=filters.get('max_amount',''),
+      category=filters.get('category',''),
+      language=filters.get('language',''),
+      team_scope=filters.get('team_scope',''),
+      individual_type=filters.get('individual_type',''),
+      deadline_before=filters.get('deadline_before','')
+  ) -}}
+{% endmacro %}
+
 {# ── Hero ── #}
 <div class="yk-hero">
   <h1 class="yk-hero__title">{{ _("Grants & Scholarships") }}</h1>
@@ -152,19 +169,18 @@
     {{ _("Discover funding opportunities curated by the Youreka team and aggregated from the Hellodarwin grants feed.") }}
   </p>
   <div class="yk-hero__stats">
-    {% set total = grants|length %}
     <div class="yk-stat">
-      <span class="yk-stat__num">{{ internal_active|length + internal_expired|length }}</span>
+      <span class="yk-stat__num">{{ internal_total }}</span>
       <span class="yk-stat__label">{{ _("Curated") }}</span>
     </div>
     <div class="yk-stat__sep"></div>
     <div class="yk-stat">
-      <span class="yk-stat__num">{{ external_active|length + external_expired|length }}</span>
+      <span class="yk-stat__num">{{ external_total }}</span>
       <span class="yk-stat__label">{{ _("Open Data") }}</span>
     </div>
     <div class="yk-stat__sep"></div>
     <div class="yk-stat">
-      <span class="yk-stat__num">{{ total }}</span>
+      <span class="yk-stat__num">{{ internal_total + external_total }}</span>
       <span class="yk-stat__label">{{ _("Total") }}</span>
     </div>
   </div>
@@ -184,6 +200,8 @@
     </div>
 
     <form method="get" class="yk-sidebar__form">
+      <input type="hidden" name="source" value="{{ source }}">
+      <input type="hidden" name="tab" value="{{ tab }}">
       <div class="yk-field">
         <label class="yk-field__label">{{ _("Region") }}</label>
         <select name="region_id" class="yk-input">
@@ -271,19 +289,93 @@
 
   {# Content #}
   <div class="yk-content">
-    {{ render_section(
-        "curated", "📋",
-        _("Curated Grants"),
-        _("Manually reviewed and added by the Youreka team."),
-        internal_active, internal_expired
-    ) }}
+    {# ── Source tabs (Curated / Hellodarwin) ── #}
+    <div class="yk-source-tabs">
+      <a href="{{ tab_url(src='curated', t='active', p=1) }}"
+         class="yk-source-tabs__btn {% if source == 'curated' %}yk-source-tabs__btn--active{% endif %}">
+        📋 {{ _("Curated Grants") }}
+        <span class="yk-source-tabs__count">{{ internal_total }}</span>
+      </a>
+      <a href="{{ tab_url(src='opendata', t='active', p=1) }}"
+         class="yk-source-tabs__btn {% if source == 'opendata' %}yk-source-tabs__btn--active{% endif %}">
+        🌐 {{ _("Hellodarwin Grants") }}
+        <span class="yk-source-tabs__count">{{ external_total }}</span>
+      </a>
+    </div>
 
-    {{ render_section(
-        "opendata", "🌐",
-        _("Hellodarwin Grants"),
-        _("Automatically aggregated from the Hellodarwin grants feed."),
-        external_active, external_expired
-    ) }}
+    {# ── Active / Expired sub-tabs ── #}
+    {% if source == 'curated' %}
+      {% set active_count = internal_active_count %}
+      {% set expired_count = internal_expired_count %}
+    {% else %}
+      {% set active_count = external_active_count %}
+      {% set expired_count = external_expired_count %}
+    {% endif %}
+
+    <div class="yk-tabs">
+      <a href="{{ tab_url(t='active', p=1) }}"
+         class="yk-tabs__btn {% if tab == 'active' %}yk-tabs__btn--active{% endif %}">
+        {{ _("Active") }}
+        <span class="yk-tabs__count">{{ active_count }}</span>
+      </a>
+      <a href="{{ tab_url(t='expired', p=1) }}"
+         class="yk-tabs__btn {% if tab == 'expired' %}yk-tabs__btn--active{% endif %}">
+        {{ _("Expired") }}
+        <span class="yk-tabs__count">{{ expired_count }}</span>
+      </a>
+    </div>
+
+    {# ── Grant cards ── #}
+    {% if not grants_page %}
+      <div class="yk-empty">
+        <p class="yk-empty__text">{{ _("No grants found.") }}</p>
+      </div>
+    {% else %}
+      <div class="yk-grid">
+        {% for grant in grants_page %}
+          {{ render_grant_card(grant) }}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {# ── Pagination ── #}
+    {% if total_pages > 1 %}
+    <nav class="yk-pagination" aria-label="Page navigation">
+      {% if page > 1 %}
+        <a href="{{ tab_url(p=page - 1) }}" class="yk-pagination__btn">← {{ _("Prev") }}</a>
+      {% else %}
+        <span class="yk-pagination__btn yk-pagination__btn--disabled">← {{ _("Prev") }}</span>
+      {% endif %}
+
+      {% set start_page = [1, page - 2] | max %}
+      {% set end_page = [total_pages, page + 2] | min %}
+
+      {% if start_page > 1 %}
+        <a href="{{ tab_url(p=1) }}" class="yk-pagination__num">1</a>
+        {% if start_page > 2 %}<span class="yk-pagination__dots">…</span>{% endif %}
+      {% endif %}
+
+      {% for p in range(start_page, end_page + 1) %}
+        {% if p == page %}
+          <span class="yk-pagination__num yk-pagination__num--active">{{ p }}</span>
+        {% else %}
+          <a href="{{ tab_url(p=p) }}" class="yk-pagination__num">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if end_page < total_pages %}
+        {% if end_page < total_pages - 1 %}<span class="yk-pagination__dots">…</span>{% endif %}
+        <a href="{{ tab_url(p=total_pages) }}" class="yk-pagination__num">{{ total_pages }}</a>
+      {% endif %}
+
+      {% if page < total_pages %}
+        <a href="{{ tab_url(p=page + 1) }}" class="yk-pagination__btn">{{ _("Next") }} →</a>
+      {% else %}
+        <span class="yk-pagination__btn yk-pagination__btn--disabled">{{ _("Next") }} →</span>
+      {% endif %}
+    </nav>
+    {% endif %}
+
   </div>
 </div>
 
@@ -291,15 +383,5 @@
 <button class="yk-fab" id="filterToggle" onclick="document.getElementById('filterSidebar').classList.toggle('yk-sidebar--open')" aria-label="Toggle filters">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
 </button>
-
-<script>
-function switchTab(btn) {
-  const section = btn.closest('.yk-section');
-  section.querySelectorAll('.yk-tabs__btn').forEach(t => t.classList.remove('yk-tabs__btn--active'));
-  section.querySelectorAll('.yk-tabs__panel').forEach(p => p.classList.remove('yk-tabs__panel--visible'));
-  btn.classList.add('yk-tabs__btn--active');
-  document.getElementById(btn.dataset.tab).classList.add('yk-tabs__panel--visible');
-}
-</script>
 
 {% endblock %}
