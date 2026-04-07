@@ -86,7 +86,10 @@ def create_app(config_name="DevConfig"):
         db.create_all()
         seed_regions_if_empty()
         seed_grants_if_empty()
-        fetch_and_import_external_grants()
+        try:
+            fetch_and_import_external_grants()
+        except Exception as exc:
+            print(f"⚠️  External grant import failed (non-fatal): {exc}")
 
     register_cli(app)
     return app
