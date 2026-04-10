@@ -389,3 +389,18 @@ msgstr "Date d'ajout"
 msgid "No entries yet."
 msgstr "Aucune entrée pour le moment."
 
+msgid "Application status"
+msgstr "Statut de la demande"
+
+msgid "Open"
+msgstr "Ouvert"
+
+msgid "Closing soon"
+msgstr "Fermeture prochaine"
+
+msgid "Opening soon"
+msgstr "Ouverture prochaine"
+
+msgid "Closed"
+msgstr "Fermé"
+

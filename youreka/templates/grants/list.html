@@ -155,8 +155,7 @@
       max_amount=filters.get('max_amount',''),
       category=filters.get('category',''),
       language=filters.get('language',''),
-      team_scope=filters.get('team_scope',''),
-      individual_type=filters.get('individual_type',''),
+      app_status=filters.get('app_status',''),
       deadline_before=filters.get('deadline_before','')
   ) -}}
 {% endmacro %}
@@ -249,28 +248,14 @@
       </div>
 
       <div class="yk-field">
-        <label class="yk-field__label">{{ _("Team scope") }}</label>
-        <select name="team_scope" class="yk-input">
+        <label class="yk-field__label">{{ _("Application status") }}</label>
+        <select name="app_status" class="yk-input">
           <option value="">{{ _("Any") }}</option>
-          <option value="National" {% if filters.get('team_scope') == 'National' %}selected{% endif %}>{{ _("National") }}</option>
-          <option value="Regional" {% if filters.get('team_scope') == 'Regional' %}selected{% endif %}>{{ _("Regional") }}</option>
+          <option value="open" {% if filters.get('app_status') == 'open' %}selected{% endif %}>{{ _("Open") }}</option>
+          <option value="closingSoon" {% if filters.get('app_status') == 'closingSoon' %}selected{% endif %}>{{ _("Closing soon") }}</option>
+          <option value="openingSoon" {% if filters.get('app_status') == 'openingSoon' %}selected{% endif %}>{{ _("Opening soon") }}</option>
+          <option value="closed" {% if filters.get('app_status') == 'closed' %}selected{% endif %}>{{ _("Closed") }}</option>
         </select>
-      </div>
-
-      <div class="yk-field">
-        <label class="yk-field__label">{{ _("Grant type") }}</label>
-        <select name="individual_type" class="yk-input">
-          <option value="">{{ _("Any") }}</option>
-          <option value="individual" {% if filters.get('individual_type') == 'individual' %}selected{% endif %}>{{ _("Individual") }}</option>
-          <option value="organization" {% if filters.get('individual_type') == 'organization' %}selected{% endif %}>{{ _("Organization") }}</option>
-          <option value="both" {% if filters.get('individual_type') == 'both' %}selected{% endif %}>{{ _("Both") }}</option>
-        </select>
-      </div>
-
-      <div class="yk-field">
-        <label class="yk-field__label">{{ _("Deadline before") }}</label>
-        <input type="date" name="deadline_before" class="yk-input"
-          value="{{ filters.get('deadline_before', '') }}" />
       </div>
 
       <button type="submit" class="yk-btn yk-btn--primary yk-btn--full">

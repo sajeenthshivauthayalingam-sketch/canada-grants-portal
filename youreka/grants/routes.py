@@ -47,14 +47,11 @@ def _apply_filters(query):
     if language == "":
         language = None
 
-    team_scope = (args.get("team_scope") or "").strip() or None
 
-    individual_type = (args.get("individual_type") or "").strip() or None
-    # Treat "both" as "any" so we don't accidentally filter out everything
-    if individual_type == "both":
-        individual_type = None
 
     deadline_before_raw = (args.get("deadline_before") or "").strip() or None
+
+    app_status = (args.get("app_status") or "").strip() or None
 
     # ---- Apply filters only when values are meaningful ----
 
@@ -111,12 +108,6 @@ def _apply_filters(query):
     if language:
         query = query.filter(func.lower(Grant.language) == language.lower())
 
-    if team_scope:
-        query = query.filter(func.lower(Grant.team_scope) == team_scope.lower())
-
-    if individual_type:
-        query = query.filter(func.lower(Grant.individual_type) == individual_type.lower())
-
     if deadline_before_raw:
         try:
             year, month, day = map(int, deadline_before_raw.split("-"))
@@ -126,8 +117,10 @@ def _apply_filters(query):
                 Grant.deadline_date <= cutoff,
             )
         except ValueError:
-            # Ignore bad date input
             pass
+
+    if app_status:
+        query = query.filter(func.lower(Grant.application_status) == app_status.lower())
 
     return query
 
