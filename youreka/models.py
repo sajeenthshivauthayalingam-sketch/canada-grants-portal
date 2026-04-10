@@ -146,3 +146,21 @@ class GrantStatus(db.Model):
 
     def __repr__(self):
         return f"<GrantStatus grant={self.grant_id} region={self.region_id} status={self.status}>"
+
+
+class Earning(db.Model):
+    """Manual earnings entries by fiscal year."""
+    __tablename__ = "earnings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    fiscal_year = db.Column(db.String(20), nullable=False)   # e.g. "2025-2026"
+    amount = db.Column(db.Float, nullable=False, default=0.0)
+    source_label = db.Column(db.String(200))                  # optional label
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    def __repr__(self):
+        return f"<Earning {self.fiscal_year} ${self.amount}>"

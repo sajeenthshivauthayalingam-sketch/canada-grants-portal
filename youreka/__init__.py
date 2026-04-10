@@ -37,24 +37,19 @@ def create_app(config_name="DevConfig"):
     # Locale selector
     # ---------------------------------------------------------
     def select_locale():
-        # 1. URL override
+        # 1. URL override — ?lang=fr or ?lang=en switches and persists
         lang = request.args.get("lang")
         if lang in app.config["LANGUAGES"]:
             session["lang"] = lang
             session.permanent = True
             return lang
 
-        # 2. If visiting "/" with NO lang= param → reset to English
-        if "lang" not in request.args:
-            session["lang"] = "en"
-            return "en"
-
-        # 3. Session fallback
+        # 2. Session fallback — honour the user's previous choice
         lang = session.get("lang")
         if lang in app.config["LANGUAGES"]:
             return lang
 
-        # 4. Default
+        # 3. Default
         return app.config["BABEL_DEFAULT_LOCALE"]
 
 
@@ -73,6 +68,14 @@ def create_app(config_name="DevConfig"):
     @app.context_processor
     def inject_lang():
         return {"current_lang": session.get("lang", "en")}
+
+    @app.context_processor
+    def inject_localized():
+        def localized(en_val, fr_val):
+            if session.get("lang") == "fr" and fr_val:
+                return fr_val
+            return en_val or ""
+        return {"localized": localized}
 
     # ---------------------------------------------------------
     # Blueprints

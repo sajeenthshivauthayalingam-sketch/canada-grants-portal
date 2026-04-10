@@ -1251,3 +1251,34 @@ button, input, select, textarea { font-family: var(--font); }
   .yk-landing-stats { gap: 1.5rem; flex-wrap: wrap; }
   .yk-features { grid-template-columns: 1fr; }
 }
+
+/* ── Table ── */
+.yk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+
+.yk-table th,
+.yk-table td {
+  padding: .65rem .75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.yk-table thead th {
+  color: var(--text-2);
+  font-weight: 600;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.yk-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+.yk-table tfoot td {
+  border-top: 2px solid var(--border);
+  padding-top: .75rem;
+}

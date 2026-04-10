@@ -13,7 +13,7 @@
       {% if grant.logo_url %}
         <img src="{{ grant.logo_url }}" alt="" class="yk-detail-hero__logo" style="height:40px;width:auto;margin-bottom:.5rem;border-radius:6px" />
       {% endif %}
-      <h1 class="yk-detail-hero__title">{{ grant.name_en }}</h1>
+      <h1 class="yk-detail-hero__title">{{ localized(grant.name_en, grant.name_fr) }}</h1>
       {% if grant.organization %}
         <p class="yk-detail-hero__org">{{ grant.organization.name }}</p>
       {% endif %}
@@ -34,7 +34,7 @@
     </div>
     {% if grant.source_url %}
       <a href="{{ grant.source_url }}" target="_blank" rel="noopener" class="yk-btn yk-btn--secondary">
-        {{ _("Official page") }}
+        {{ _("Apply Now") }}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </a>
     {% endif %}
@@ -105,10 +105,10 @@
 <div class="yk-detail-layout">
   <section class="yk-panel">
     <h2 class="yk-panel__title">{{ _("Description") }}</h2>
-    <p class="yk-prose">{{ grant.long_description or grant.description_en or _("No description available.") }}</p>
+    <p class="yk-prose">{{ localized(grant.long_description or grant.description_en, grant.description_fr) or _("No description available.") }}</p>
 
     <h2 class="yk-panel__title" style="margin-top: 1.5rem">{{ _("Eligibility") }}</h2>
-    <p class="yk-prose">{{ grant.eligibility_en or _("Eligibility criteria not specified.") }}</p>
+    <p class="yk-prose">{{ localized(grant.eligibility_en, grant.eligibility_fr) or _("Eligibility criteria not specified.") }}</p>
 
     {% if grant.who_can_apply %}
     <h2 class="yk-panel__title" style="margin-top: 1.5rem">{{ _("Who can apply") }}</h2>

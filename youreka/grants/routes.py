@@ -3,8 +3,24 @@ from datetime import date
 from flask import render_template, request, redirect, url_for, flash
 from flask_babel import gettext as _
 from ..extensions import db
-from ..models import Grant, GrantStatus, Region
+from ..models import Grant, GrantStatus, Region, Earning
 from sqlalchemy import func
+
+PROVINCES = [
+    ("AB", "Alberta"),
+    ("BC", "British Columbia"),
+    ("MB", "Manitoba"),
+    ("NB", "New Brunswick"),
+    ("NL", "Newfoundland and Labrador"),
+    ("NS", "Nova Scotia"),
+    ("NT", "Northwest Territories"),
+    ("NU", "Nunavut"),
+    ("ON", "Ontario"),
+    ("PE", "Prince Edward Island"),
+    ("QC", "Quebec"),
+    ("SK", "Saskatchewan"),
+    ("YT", "Yukon"),
+]
 
 def _apply_filters(query):
     """
@@ -90,16 +106,16 @@ def _apply_filters(query):
         )
 
     if category:
-        query = query.filter(Grant.category == category)
+        query = query.filter(func.lower(Grant.category) == category.lower())
 
     if language:
-        query = query.filter(Grant.language == language)
+        query = query.filter(func.lower(Grant.language) == language.lower())
 
     if team_scope:
-        query = query.filter(Grant.team_scope == team_scope)
+        query = query.filter(func.lower(Grant.team_scope) == team_scope.lower())
 
     if individual_type:
-        query = query.filter(Grant.individual_type == individual_type)
+        query = query.filter(func.lower(Grant.individual_type) == individual_type.lower())
 
     if deadline_before_raw:
         try:
@@ -122,10 +138,21 @@ def landing():
         (Grant.source_type == "internal") | (Grant.source_type.is_(None))
     ).count()
     opendata_count = Grant.query.filter(Grant.source_type == "external").count()
+
+    # Total earnings
+    manual_total = db.session.query(
+        func.coalesce(func.sum(Earning.amount), 0)
+    ).scalar()
+    awarded_total = db.session.query(
+        func.coalesce(func.sum(GrantStatus.amount_awarded), 0)
+    ).filter(GrantStatus.status == "Awarded").scalar()
+    total_earned = (manual_total or 0) + (awarded_total or 0)
+
     return render_template(
         "landing.html",
         curated_count=curated_count,
         opendata_count=opendata_count,
+        total_earned=total_earned,
         current_date=today,
     )
 
@@ -183,8 +210,6 @@ def index():
         page = total_pages
     grants_page = query.offset((page - 1) * PER_PAGE).limit(PER_PAGE).all()
 
-    regions = Region.query.filter_by(is_active=True).all()
-
     return render_template(
         "grants/list.html",
         grants_page=grants_page,
@@ -199,7 +224,7 @@ def index():
         external_expired_count=external_expired_count,
         internal_total=internal_active_count + internal_expired_count,
         external_total=external_active_count + external_expired_count,
-        regions=regions,
+        provinces=PROVINCES,
         current_date=today,
         filters=request.args,
     )
@@ -262,4 +287,60 @@ def grant_detail(grant_id):
         regions=regions,
         selected_region=region,
         status_record=status_record,
+    )
+
+
+@bp.route("/earnings", methods=["GET", "POST"])
+def earnings():
+    if request.method == "POST":
+        fiscal_year = (request.form.get("fiscal_year") or "").strip()
+        amount = request.form.get("amount", type=float)
+        source_label = (request.form.get("source_label") or "").strip()
+        notes = (request.form.get("notes") or "").strip()
+
+        if fiscal_year and amount is not None:
+            earning = Earning(
+                fiscal_year=fiscal_year,
+                amount=amount,
+                source_label=source_label or None,
+                notes=notes or None,
+            )
+            db.session.add(earning)
+            db.session.commit()
+            flash(_("Earning entry added."), "success")
+        return redirect(url_for("grants.earnings"))
+
+    # Manual earnings grouped by fiscal year
+    earnings_by_year = (
+        db.session.query(
+            Earning.fiscal_year,
+            func.sum(Earning.amount).label("total"),
+        )
+        .group_by(Earning.fiscal_year)
+        .order_by(Earning.fiscal_year.desc())
+        .all()
+    )
+
+    # Awarded amounts from GrantStatus
+    awarded_total = (
+        db.session.query(func.coalesce(func.sum(GrantStatus.amount_awarded), 0))
+        .filter(GrantStatus.status == "Awarded")
+        .scalar()
+    ) or 0
+
+    manual_total = sum(row.total or 0 for row in earnings_by_year)
+    grand_total = manual_total + awarded_total
+
+    all_entries = Earning.query.order_by(
+        Earning.fiscal_year.desc(), Earning.created_at.desc()
+    ).all()
+
+    return render_template(
+        "grants/earnings.html",
+        earnings_by_year=earnings_by_year,
+        awarded_total=awarded_total,
+        manual_total=manual_total,
+        grand_total=grand_total,
+        all_entries=all_entries,
+        current_date=date.today(),
     )

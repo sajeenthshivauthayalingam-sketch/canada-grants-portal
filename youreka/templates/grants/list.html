@@ -20,7 +20,7 @@
     <div class="yk-card__body">
       {# Title + org #}
       <div class="yk-card__header">
-        <h3 class="yk-card__title">{{ grant.name_en }}</h3>
+        <h3 class="yk-card__title">{{ localized(grant.name_en, grant.name_fr) }}</h3>
         {% if grant.organization %}
           <span class="yk-card__org">{{ grant.organization.name }}</span>
         {% endif %}
@@ -149,7 +149,6 @@
 {% macro tab_url(src=source, t=tab, p=1) %}
   {{- url_for('grants.index',
       source=src, tab=t, page=p,
-      region_id=filters.get('region_id',''),
       province=filters.get('province',''),
       ngo_only=filters.get('ngo_only',''),
       min_amount=filters.get('min_amount',''),
@@ -203,23 +202,16 @@
       <input type="hidden" name="source" value="{{ source }}">
       <input type="hidden" name="tab" value="{{ tab }}">
       <div class="yk-field">
-        <label class="yk-field__label">{{ _("Region") }}</label>
-        <select name="region_id" class="yk-input">
-          <option value="">{{ _("All regions") }}</option>
-          {% for region in regions %}
-          <option value="{{ region.id }}"
-            {% if (filters.get('region_id')|int) == region.id %}selected{% endif %}>
-            {{ region.name_en }}
+        <label class="yk-field__label">{{ _("Province") }}</label>
+        <select name="province" class="yk-input">
+          <option value="">{{ _("All provinces") }}</option>
+          {% for code, name in provinces %}
+          <option value="{{ name }}"
+            {% if filters.get('province') == name %}selected{% endif %}>
+            {{ name }}
           </option>
           {% endfor %}
         </select>
-      </div>
-
-      <div class="yk-field">
-        <label class="yk-field__label">{{ _("Province") }}</label>
-        <input type="text" name="province" class="yk-input"
-          value="{{ filters.get('province', '') }}"
-          placeholder="{{ _('ON, BC, QC…') }}" />
       </div>
 
       <label class="yk-check">

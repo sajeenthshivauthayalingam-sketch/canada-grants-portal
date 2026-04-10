@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="yk-hero">
+  <h1 class="yk-hero__title">{{ _("Total Earnings") }}</h1>
+  <p class="yk-hero__sub">
+    {{ _("Track grant funding earned across fiscal years.") }}
+  </p>
+  <div class="yk-hero__stats">
+    <div class="yk-stat">
+      <span class="yk-stat__num">${{ "{:,.0f}".format(grand_total) }}</span>
+      <span class="yk-stat__label">{{ _("Grand Total") }}</span>
+    </div>
+    <div class="yk-stat__sep"></div>
+    <div class="yk-stat">
+      <span class="yk-stat__num">${{ "{:,.0f}".format(manual_total) }}</span>
+      <span class="yk-stat__label">{{ _("Manual Entries") }}</span>
+    </div>
+    <div class="yk-stat__sep"></div>
+    <div class="yk-stat">
+      <span class="yk-stat__num">${{ "{:,.0f}".format(awarded_total) }}</span>
+      <span class="yk-stat__label">{{ _("Awarded (Tracked)") }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="yk-layout">
+  {# ── Sidebar: Add new entry ── #}
+  <aside class="yk-sidebar" id="earningsSidebar">
+    <div class="yk-sidebar__head">
+      <h2 class="yk-sidebar__title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        {{ _("Add Entry") }}
+      </h2>
+    </div>
+    <form method="post" class="yk-sidebar__form">
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Fiscal Year") }}</label>
+        <select name="fiscal_year" class="yk-input" required>
+          <option value="2024-2025">2024–2025</option>
+          <option value="2025-2026" selected>2025–2026</option>
+          <option value="2026-2027">2026–2027</option>
+          <option value="2027-2028">2027–2028</option>
+          <option value="2028-2029">2028–2029</option>
+        </select>
+      </div>
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Amount (CAD)") }}</label>
+        <input type="number" name="amount" class="yk-input" step="0.01" min="0" required
+          placeholder="10000" />
+      </div>
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Source / Grant Name") }}</label>
+        <input type="text" name="source_label" class="yk-input"
+          placeholder="{{ _('e.g. OTF Seed Grant') }}" />
+      </div>
+      <div class="yk-field">
+        <label class="yk-field__label">{{ _("Notes") }}</label>
+        <textarea name="notes" rows="3" class="yk-input yk-textarea"
+          placeholder="{{ _('Optional notes…') }}"></textarea>
+      </div>
+      <button type="submit" class="yk-btn yk-btn--primary yk-btn--full">
+        {{ _("Add Earning") }}
+      </button>
+    </form>
+  </aside>
+
+  {# ── Main content ── #}
+  <div class="yk-content">
+    {# ── Breakdown by fiscal year ── #}
+    <section class="yk-panel" style="margin-bottom: 1.5rem">
+      <h2 class="yk-panel__title">{{ _("Earnings by Fiscal Year") }}</h2>
+      {% if earnings_by_year %}
+        <table class="yk-table">
+          <thead>
+            <tr>
+              <th>{{ _("Fiscal Year") }}</th>
+              <th style="text-align:right">{{ _("Amount") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in earnings_by_year %}
+            <tr>
+              <td>{{ row.fiscal_year }}</td>
+              <td style="text-align:right">${{ "{:,.2f}".format(row.total) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr style="font-weight:600">
+              <td>{{ _("Total (Manual)") }}</td>
+              <td style="text-align:right">${{ "{:,.2f}".format(manual_total) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      {% else %}
+        <p class="yk-prose yk-prose--muted">{{ _("No earnings recorded yet. Use the form to add entries.") }}</p>
+      {% endif %}
+    </section>
+
+    {# ── All entries ── #}
+    <section class="yk-panel">
+      <h2 class="yk-panel__title">{{ _("All Entries") }}</h2>
+      {% if all_entries %}
+        <table class="yk-table">
+          <thead>
+            <tr>
+              <th>{{ _("Fiscal Year") }}</th>
+              <th>{{ _("Source") }}</th>
+              <th style="text-align:right">{{ _("Amount") }}</th>
+              <th>{{ _("Notes") }}</th>
+              <th>{{ _("Date Added") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in all_entries %}
+            <tr>
+              <td>{{ entry.fiscal_year }}</td>
+              <td>{{ entry.source_label or "—" }}</td>
+              <td style="text-align:right">${{ "{:,.2f}".format(entry.amount) }}</td>
+              <td>{{ entry.notes or "—" }}</td>
+              <td>{{ entry.created_at.strftime("%b %d, %Y") if entry.created_at else "—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="yk-prose yk-prose--muted">{{ _("No entries yet.") }}</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+{% endblock %}
